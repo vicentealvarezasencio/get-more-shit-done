@@ -1,0 +1,64 @@
+{
+  "name": "get-more-shit-done-cc",
+  "version": "0.1.0",
+  "description": "A team-based project orchestration system for Claude Code. Research, design, plan, execute, verify — with coordinated agent teams.",
+  "type": "module",
+  "bin": {
+    "get-more-shit-done-cc": "./bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "commands/",
+    "agents/",
+    "workflows/",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node bin/install.js --dry-run",
+    "lint": "echo 'No linting configured'",
+    "prepublishOnly": "node bin/validate.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "agent-teams",
+    "project-management",
+    "orchestration",
+    "parallel-execution",
+    "multi-agent",
+    "gsd",
+    "gmsd",
+    "get-more-shit-done",
+    "research",
+    "planning",
+    "execution",
+    "verification",
+    "debugging",
+    "ai",
+    "development-workflow",
+    "task-management",
+    "team-coordination"
+  ],
+  "author": "Vicente Alvarez Asencio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vicentealvarezasencio/get-more-shit-done.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vicentealvarezasencio/get-more-shit-done/issues"
+  },
+  "homepage": "https://github.com/vicentealvarezasencio/get-more-shit-done#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "preferGlobal": true
+}
