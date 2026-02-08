@@ -33,6 +33,30 @@ You are the GMSD verification orchestrator. You perform goal-backward verificati
    - `.planning/design/screens/SCR-*.md`
    - If design specs exist, UI conformance is part of verification.
 
+### Step 1.5: Automated Test Suite
+
+Before spawning the verifier, run the project's automated tests:
+
+1. **Detect test framework** (see `workflows/test-runner.md` for detection logic)
+2. **Run the full test suite** using the test runner workflow with `--full` flag
+3. **Record results:**
+   - If **PASS**: note in verification context ("All automated tests passing")
+   - If **FAIL**: include failing tests in verifier's context so it can check if they are related to phase work
+   - If **SKIP**: note that no automated tests exist (flag as a gap)
+4. **Include test results in VERIFICATION.md** under an "Automated Tests" section:
+   ```
+   ## Automated Tests
+
+   Framework: {detected framework}
+   Command: {command run}
+   Status: {PASS | FAIL | SKIP}
+   Duration: {time}s
+   Passed: {X} | Failed: {Y} | Skipped: {Z}
+
+   {If FAIL: list of failing tests}
+   {If SKIP: reason no tests were run}
+   ```
+
 ### Step 2: Build Verification Criteria
 
 From the PLAN.md verification spec, extract the goal decomposition:
@@ -123,6 +147,11 @@ Goal-backward verification means:
 - `.planning/design/screens/SCR-01.md` through `SCR-{last}.md`
 - `.planning/design/COMPONENTS.md`
 
+## Automated Test Results (from Step 1.5)
+{test_context from the test runner results — see Step 1.5}
+Include these results in VERIFICATION.md under an "Automated Tests" section.
+If tests failed, check whether the failures are related to phase work or pre-existing issues.
+
 ## Your Task
 
 ### 1. Run Automated Checks
@@ -174,6 +203,7 @@ Write the complete verification report to `.planning/phases/{N}-{name}/VERIFICAT
 Follow the template structure:
 - Phase Goal (restated)
 - Verification Method (describe your approach)
+- **Automated Tests** (results from Step 1.5 — framework, command, pass/fail counts, failing test names)
 - Results table (all criteria with status and evidence)
 - Summary counts (total, passed, failed, partial)
 - Gaps Found (with severity, description, suggested fix)
@@ -344,7 +374,14 @@ Append to `history`:
 
 Update `.planning/STATE.md` and ROADMAP.md phase status.
 
-### Step 9: What's Next
+### Step 9: Sync CLAUDE.md
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+
+### Step 10: What's Next
 
 **If PROCEED:**
 ```

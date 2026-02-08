@@ -27,6 +27,9 @@ Inspired by [GSD (Get Shit Done)](https://github.com/vicentealvarezasencio/get-s
 # Install globally (recommended)
 npx get-more-shit-done-cc
 
+# Install with a project preset
+npx get-more-shit-done-cc --preset nextjs
+
 # Install for current project only
 npx get-more-shit-done-cc --local
 
@@ -78,6 +81,13 @@ npx get-more-shit-done-cc --uninstall
 /gmsd:plan-milestone-gaps  Create phases to close audit gaps
 /gmsd:retrospective     Post-milestone analysis and lessons learned
 /gmsd:new-milestone     Start a new milestone cycle
+/gmsd:preflight         Validate plan before execution
+/gmsd:create-pr         Auto-generate GitHub PR from phase work
+/gmsd:check-design-drift  Detect hardcoded values vs design tokens
+/gmsd:replay            Timeline view of execution history
+/gmsd:estimate-cost     Preview token/dollar cost before running
+/gmsd:sync              Regenerate project CLAUDE.md context
+/gmsd:tour              Interactive walkthrough (~5 min)
 /gmsd:progress          Check status and route to next action
 /gmsd:update            Check for and install latest version
 /gmsd:join-discord      Community links and support
@@ -132,6 +142,8 @@ Research Team (parallel domain exploration with live broadcasts)
 8. **Continuous flow over wave batching** — no artificial boundaries
 9. **Observable execution** — every agent visible in tmux
 10. **Learn from every milestone** — retrospectives and context carry-forward
+11. **Verify continuously** — micro-verification after every task, not just at the end
+12. **Enforce quality automatically** — hooks for tests, lint, and file ownership
 
 ## Works With
 

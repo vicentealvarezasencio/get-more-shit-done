@@ -1,0 +1,29 @@
+{
+  "preset": "api",
+  "description": "Backend API service (Node.js/Python)",
+  "config_overrides": {
+    "teams": { "default_executors": 3, "max_executors": 4, "scale_up_threshold": 4 },
+    "design": { "enabled": false, "auto_detect": false }
+  },
+  "suggested_phases": [
+    "Project setup, config & database schema",
+    "Core API endpoints & business logic",
+    "Authentication, authorization & middleware",
+    "Validation, error handling & logging",
+    "Testing, documentation & deployment"
+  ],
+  "research_topics": [
+    "REST vs GraphQL API design patterns",
+    "Database schema design and migration strategies",
+    "Authentication patterns (JWT, OAuth2, API keys)",
+    "Rate limiting, caching & performance optimization"
+  ],
+  "file_patterns": {
+    "routes": "src/routes/**/*.{ts,js,py}",
+    "controllers": "src/controllers/**/*.{ts,js,py}",
+    "models": "src/models/**/*.{ts,js,py}",
+    "middleware": "src/middleware/**/*.{ts,js,py}",
+    "services": "src/services/**/*.{ts,js,py}",
+    "tests": "**/*.{test,spec}.{ts,js,py}"
+  }
+}

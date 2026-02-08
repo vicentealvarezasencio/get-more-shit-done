@@ -155,7 +155,14 @@ Update `last_command` to `/gmsd:quick` and `last_updated` to the current ISO tim
 
 Do NOT modify `current_phase` or `phase_status` — quick tasks are independent of the phase workflow.
 
-### Step 6: What's Next
+### Step 6: Sync CLAUDE.md
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+
+### Step 7: What's Next
 
 **If a project exists**, read `state.json` for context:
 

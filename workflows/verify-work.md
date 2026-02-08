@@ -79,6 +79,34 @@ Determine what to verify:
 
 ---
 
+## Step 1.5: Automated Test Suite
+
+**Actor:** Lead
+
+Before spawning the verifier, run the project's automated tests using the test runner workflow:
+
+```
+// Run the full test suite (see workflows/test-runner.md)
+test_result = TestRunner(flag="--full")
+
+// Record results for the verifier
+IF test_result.status == "PASS":
+  test_context = "All automated tests passing ({test_result.passed} tests passed in {test_result.duration}s)"
+  test_section = "## Automated Tests\n\nStatus: PASS\nFramework: {test_result.framework}\nPassed: {test_result.passed} | Failed: 0 | Skipped: {test_result.skipped}\nDuration: {test_result.duration}s"
+
+ELSE IF test_result.status == "FAIL":
+  test_context = "AUTOMATED TESTS FAILING: {test_result.failed} tests failed. Failing tests: {test_result.failed_tests}. The verifier should check if these failures are related to phase {N} work."
+  test_section = "## Automated Tests\n\nStatus: FAIL\nFramework: {test_result.framework}\nPassed: {test_result.passed} | Failed: {test_result.failed} | Skipped: {test_result.skipped}\nDuration: {test_result.duration}s\n\nFailing tests:\n{for each test in test_result.failed_tests: - {test}\n}"
+
+ELSE IF test_result.status == "SKIP":
+  test_context = "No automated tests detected. The verifier should note this as a gap."
+  test_section = "## Automated Tests\n\nStatus: SKIP\nReason: {test_result.note}"
+
+Log: "Test suite: {test_result.status} ({test_result.framework}). {test_result.passed} passed, {test_result.failed} failed."
+```
+
+---
+
 ## Step 2: Spawn Verifier Subagent
 
 **Actor:** Lead
@@ -129,6 +157,12 @@ Task(
   {IF context exists:}
   - .planning/phases/{N}-{name}/CONTEXT.md -- user decisions
   {ENDIF}
+
+  AUTOMATED TEST RESULTS (from Step 1.5):
+  {test_context}
+  Include these results in VERIFICATION.md under an 'Automated Tests' section.
+  If tests failed, check whether the failures are related to phase {N} work
+  or pre-existing issues.
 
   VERIFICATION PROTOCOL:
 

@@ -1,0 +1,27 @@
+{
+  "preset": "ios",
+  "description": "iOS application (Swift/SwiftUI)",
+  "config_overrides": {
+    "teams": { "default_executors": 3, "max_executors": 4, "scale_up_threshold": 3 },
+    "design": { "adapter": "swiftui", "dark_mode": true }
+  },
+  "suggested_phases": [
+    "Project structure & navigation",
+    "Core views & components",
+    "Data models & persistence",
+    "Networking & API integration",
+    "Testing & App Store prep"
+  ],
+  "research_topics": [
+    "SwiftUI patterns 2025+",
+    "Swift concurrency (async/await)",
+    "Core Data vs SwiftData",
+    "App Store guidelines"
+  ],
+  "file_patterns": {
+    "views": "**/*View.swift",
+    "models": "**/Models/**/*.swift",
+    "services": "**/Services/**/*.swift",
+    "tests": "**/*Tests.swift"
+  }
+}

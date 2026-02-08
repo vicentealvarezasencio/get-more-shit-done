@@ -104,6 +104,26 @@ Commit message conventions:
 - Brief description in imperative mood ("add sound manager" not "added sound manager")
 - If deviation was made, note it: `gmsd(T-{NN}): {description} [deviation: {what and why}]`
 
+### Step 6.5: Micro-Verification (after each task commit)
+
+After committing, run these quick checks before marking the task complete:
+
+1. **Build check**: If the project has a build command (detected from package.json `build`, Makefile, `cargo build`, `go build`), run it. If it fails, the task is NOT complete -- fix the build before proceeding.
+
+2. **Test check**: If the project has tests, run them. Focus on:
+   - Tests in the same directory as modified files
+   - Tests that import modified modules
+   - If a full test suite exists and is fast (<30s), run the full suite
+   - If slow, run only related tests
+
+3. **Acceptance criteria self-check**: Re-read the task's acceptance criteria and verify each one is actually met. Not "I think I did it" but "I can demonstrate evidence."
+
+4. **Report results to lead**:
+   - If all checks pass: include "micro-verification: PASS" in task completion message
+   - If build fails: DO NOT mark task complete. Fix the build, re-commit, re-verify.
+   - If tests fail: Assess if the failure is from your changes or pre-existing. If yours, fix. If pre-existing, note it in your completion message.
+   - If acceptance criteria not met: continue working, do not mark complete.
+
 ### Step 7: Mark Complete
 
 ```
@@ -327,9 +347,12 @@ When you receive a message, read it promptly and respond. Do not ignore messages
 1. Verify acceptance criteria met
 2. git add {specific files}
 3. git commit -m "gmsd(T-{NN}): {description}"
-4. TaskUpdate(task_id, status=completed)
-5. SendMessage to lead
-6. Back to claiming loop
+4. Micro-verification: run build check, test check, acceptance criteria self-check (see Step 6.5)
+   - If build or tests fail from your changes: fix, re-commit, re-verify
+   - If pre-existing failures: note in completion message
+5. TaskUpdate(task_id, status=completed)
+6. SendMessage to lead (include "micro-verification: PASS" or test failure notes)
+7. Back to claiming loop
 ```
 
 ---

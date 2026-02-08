@@ -1,0 +1,29 @@
+{
+  "preset": "chrome-extension",
+  "description": "Browser extension (Chrome/Firefox/Edge)",
+  "config_overrides": {
+    "teams": { "default_executors": 2, "max_executors": 4, "scale_up_threshold": 3 },
+    "design": { "adapter": "tailwind", "dark_mode": true }
+  },
+  "suggested_phases": [
+    "Manifest, project structure & build pipeline",
+    "Background service worker & messaging",
+    "Content scripts & page interaction",
+    "Popup/options UI & storage",
+    "Testing, permissions audit & store submission"
+  ],
+  "research_topics": [
+    "Manifest V3 APIs and migration patterns",
+    "Chrome extension security best practices",
+    "Content script isolation and messaging patterns",
+    "Chrome Web Store review guidelines and policies"
+  ],
+  "file_patterns": {
+    "background": "src/background/**/*.{ts,js}",
+    "content": "src/content/**/*.{ts,js}",
+    "popup": "src/popup/**/*.{ts,tsx,js,jsx}",
+    "options": "src/options/**/*.{ts,tsx,js,jsx}",
+    "manifest": "manifest.json",
+    "tests": "**/*.{test,spec}.{ts,js}"
+  }
+}

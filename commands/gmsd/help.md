@@ -148,6 +148,12 @@ Show all commands grouped by category. Use a clean table format.
  /gmsd:settings             View and modify GMSD configuration.
                            Mode, team sizes, git settings, models.
 
+ /gmsd:estimate-cost {cmd}  Estimate token usage and dollar cost before
+                           running a team command. Helps budget API spend.
+
+ /gmsd:tour                 Interactive walkthrough of the GMSD workflow.
+                           Learn by seeing examples, no files modified.
+
  /gmsd:update               Check for and install the latest version
                            of GMSD from npm.
 
@@ -174,8 +180,14 @@ Show a quick start section for new users:
    1. /gmsd:progress             See where you left off
    2. Follow the recommended next step
 
+ First time?
+   1. /gmsd:tour                 Interactive walkthrough (~5 min)
+
  Changing settings:
    1. /gmsd:settings             View/edit configuration
+
+ Cost planning:
+   1. /gmsd:estimate-cost {cmd}  Preview token/dollar cost
 ```
 
 ### 5. Show Links

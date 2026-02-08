@@ -364,6 +364,11 @@ peak_executor_count = initial_size
 standing_by_executors = []
 execution_start_time = now()
 last_completion_time = now()
+verified_tasks = 0
+flagged_tasks = 0
+unverified_tasks = 0
+consecutive_test_failures = 0
+task_verification_status = {}
 ```
 
 ### Main Monitoring Loop
@@ -397,6 +402,39 @@ WHILE tasks_completed + tasks_failed < tasks_total:
 
       // Update STATE.md with progress
       // (do this periodically, not on every completion -- every 3 completions or 2 min)
+
+      // -----------------------------------------------------------------
+      // INCREMENTAL VERIFICATION TRACKING
+      // -----------------------------------------------------------------
+      // Track micro-verification results from executor completion messages
+      IF message contains "micro-verification: PASS":
+        verified_tasks += 1
+        task_verification_status[task_id] = "verified"
+      ELSE IF message contains "test failure" or "tests fail":
+        flagged_tasks += 1
+        consecutive_test_failures += 1
+        task_verification_status[task_id] = "flagged"
+      ELSE:
+        unverified_tasks += 1
+        task_verification_status[task_id] = "unverified"
+        consecutive_test_failures = 0
+
+      // Early warning: 3+ consecutive test failures
+      IF consecutive_test_failures >= 3:
+        Lead to User: "WARNING: Multiple tasks are causing test failures.
+          This may indicate a foundational issue.
+          Options:
+          a) Continue execution (failures may resolve as dependencies complete)
+          b) Pause and investigate now
+          c) Run full verification on completed work"
+
+        IF mode == "guided":
+          WAIT for user response
+        IF mode == "balanced":
+          Log: "Continuing execution despite test failures. Will address in verification."
+          consecutive_test_failures = 0
+        IF mode == "yolo":
+          consecutive_test_failures = 0
 
     // -----------------------------------------------------------------
     // CASE 2: Checkpoint Request
@@ -728,6 +766,7 @@ Execution Summary -- Phase {N}: {phase_name}
   Team Peak Size:   {peak_executor_count} executors
   Checkpoints:      {checkpoint_count}
   File Conflicts:   {conflict_count}
+  Micro-Verified:   {verified_tasks}/{tasks_completed} tasks ({flagged_tasks} had test warnings)
 
   Task Breakdown:
   {for each completed task:}

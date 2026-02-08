@@ -234,7 +234,14 @@ Update `.planning/STATE.md` to reflect the new status.
 
 Update ROADMAP.md phase status to "discussed" (in the phase list table).
 
-### 8. What's Next
+### 8. Sync CLAUDE.md
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+
+### 9. What's Next
 
 ```
 ---

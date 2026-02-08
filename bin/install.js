@@ -31,6 +31,11 @@ const isDryRun = args.includes('--dry-run');
 const isHelp = args.includes('--help') || args.includes('-h');
 const isUninstall = args.includes('--uninstall');
 const isForce = args.includes('--force');
+const presetFlag = args.find(a => a.startsWith('--preset'));
+const presetValue = presetFlag
+  ? (presetFlag.includes('=') ? presetFlag.split('=')[1] : args[args.indexOf(presetFlag) + 1])
+  : null;
+const validPresets = ['nextjs', 'ios', 'react-native', 'api', 'cli', 'chrome-extension', 'monorepo'];
 
 // Version from package.json
 const packageJson = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf-8'));
@@ -77,6 +82,9 @@ ${colors.bright}Options:${colors.reset}
   --local       Install to ./.claude/ (project-specific)
   --dry-run     Preview installation without making changes
   --uninstall   Remove GMSD files (use with --global or --local to skip prompt)
+  --preset {type}  Apply a project-type preset during install
+                   Types: nextjs, ios, react-native, api, cli,
+                          chrome-extension, monorepo
   --force       Skip confirmation prompt during uninstall
   --help, -h    Show this help message
 
@@ -89,10 +97,15 @@ ${colors.bright}What gets installed:${colors.reset}
 ${colors.bright}Default location:${colors.reset}
   ~/.claude/        Global installation (works across all projects)
 
+${colors.bright}Preset install:${colors.reset}
+  npx get-more-shit-done-cc --preset nextjs
+  npx get-more-shit-done-cc --preset api --local
+
 ${colors.bright}After installation:${colors.reset}
   1. Open Claude Code in any project
   2. Run /gmsd:new-project to get started
   3. Run /gmsd:help for command reference
+  4. Run /gmsd:tour for an interactive walkthrough
 
 ${colors.bright}Requirements:${colors.reset}
   Claude Code with Agent Teams enabled:
@@ -353,7 +366,51 @@ async function install() {
   }
   console.log();
 
-  // 5. Write version file
+  // 5. Install hooks
+  const hooksSrc = join(packageRoot, 'hooks');
+  const hooksDest = join(configDir, 'hooks');
+  const hookFiles = ['gmsd-task-completed.js', 'gmsd-teammate-idle.js', 'gmsd-file-tracker.js'];
+
+  let hookCount = 0;
+  if (existsSync(hooksSrc)) {
+    for (const file of hookFiles) {
+      if (existsSync(join(hooksSrc, file))) hookCount++;
+    }
+  }
+
+  log(`${colors.bright}Hooks${colors.reset} (${hookCount} files)`, 'cyan');
+  if (existsSync(hooksSrc) && hookCount > 0) {
+    if (!isDryRun) {
+      mkdirSync(hooksDest, { recursive: true });
+
+      // Remove existing gmsd-* hooks
+      if (existsSync(hooksDest)) {
+        for (const file of readdirSync(hooksDest)) {
+          if (file.startsWith('gmsd-')) {
+            rmSync(join(hooksDest, file));
+          }
+        }
+      }
+
+      // Copy hook files
+      for (const file of hookFiles) {
+        const srcFile = join(hooksSrc, file);
+        if (existsSync(srcFile)) {
+          writeFileSync(join(hooksDest, file), readFileSync(srcFile, 'utf8'));
+          totalCopied++;
+        }
+      }
+      log(`  ✓ Installed to hooks/gmsd-*`, 'green');
+    } else {
+      totalCopied += hookCount;
+      log(`  Would install to hooks/gmsd-*`, 'dim');
+    }
+  } else {
+    log(`  - No hooks found`, 'dim');
+  }
+  console.log();
+
+  // 6. Write version file
   if (!isDryRun) {
     const versionDir = join(configDir, 'get-more-shit-done');
     mkdirSync(versionDir, { recursive: true });
@@ -361,7 +418,39 @@ async function install() {
     log(`Version file written (${VERSION})`, 'green');
   }
 
-  // 6. Check Agent Teams setting
+  // 7. Apply preset if specified
+  if (presetValue && !isDryRun) {
+    if (!validPresets.includes(presetValue)) {
+      log(`\n⚠ Unknown preset: "${presetValue}"`, 'yellow');
+      log(`  Valid presets: ${validPresets.join(', ')}`, 'dim');
+      log(`  Skipping preset application. You can apply one later via /gmsd:new-project.\n`, 'dim');
+    } else {
+      const presetSrc = join(packageRoot, 'templates', 'presets', `${presetValue}.json`);
+      if (existsSync(presetSrc)) {
+        const preset = JSON.parse(readFileSync(presetSrc, 'utf8'));
+        const presetMarkerDir = join(configDir, 'get-more-shit-done');
+        mkdirSync(presetMarkerDir, { recursive: true });
+        writeFileSync(join(presetMarkerDir, 'PRESET'), presetValue);
+        log(`\n✓ Preset "${presetValue}" selected: ${preset.description}`, 'green');
+        log(`  Will be applied when you run /gmsd:new-project`, 'dim');
+        log(`  Config overrides: executors=${preset.config_overrides?.teams?.default_executors || 3}, ` +
+          `max=${preset.config_overrides?.teams?.max_executors || 5}`, 'dim');
+        if (preset.suggested_phases) {
+          log(`  Suggested phases: ${preset.suggested_phases.length} phases ready`, 'dim');
+        }
+      } else {
+        log(`\n⚠ Preset file not found for "${presetValue}". Skipping.`, 'yellow');
+      }
+    }
+  } else if (presetValue && isDryRun) {
+    if (validPresets.includes(presetValue)) {
+      log(`\nWould apply preset: "${presetValue}"`, 'dim');
+    } else {
+      log(`\n⚠ Unknown preset: "${presetValue}" (would be skipped)`, 'yellow');
+    }
+  }
+
+  // 8. Check Agent Teams setting
   const agentTeamsEnabled = checkAgentTeams(configDir);
 
   // Summary
@@ -378,10 +467,26 @@ async function install() {
       log(`  { "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }`, 'dim');
     }
 
+    // Show hooks configuration instructions
+    log(`\n${colors.bright}Optional: Enable GMSD quality hooks${colors.reset}`, 'yellow');
+    log(`To enable automated quality checks, add to your settings.json:`, 'dim');
+    console.log(`${colors.dim}  {
+    "hooks": {
+      "TaskCompleted": [{ "hooks": [{ "type": "command", "command": "node ${pathPrefix}/hooks/gmsd-task-completed.js" }] }],
+      "TeammateIdle": [{ "hooks": [{ "type": "command", "command": "node ${pathPrefix}/hooks/gmsd-teammate-idle.js" }] }],
+      "PostToolUse": [{ "hooks": [{ "type": "command", "command": "node ${pathPrefix}/hooks/gmsd-file-tracker.js" }] }]
+    }
+  }${colors.reset}`);
+
     log(`\nNext steps:`, 'bright');
     log(`  1. Open Claude Code in your project`, 'dim');
-    log(`  2. Run ${colors.cyan}/gmsd:new-project${colors.reset}${colors.dim} to get started`);
-    log(`  3. Run ${colors.cyan}/gmsd:help${colors.reset}${colors.dim} for all commands`);
+    if (presetValue && validPresets.includes(presetValue)) {
+      log(`  2. Run ${colors.cyan}/gmsd:new-project${colors.reset}${colors.dim} to get started (${presetValue} preset will be auto-applied)`);
+    } else {
+      log(`  2. Run ${colors.cyan}/gmsd:new-project${colors.reset}${colors.dim} to get started`);
+    }
+    log(`  3. Run ${colors.cyan}/gmsd:tour${colors.reset}${colors.dim} for an interactive walkthrough`);
+    log(`  4. Run ${colors.cyan}/gmsd:help${colors.reset}${colors.dim} for all commands`);
     log(`\nWorks alongside ui-design-cc for UI/UX workflows`, 'dim');
   }
 
@@ -418,7 +523,17 @@ async function uninstall() {
     }
   }
 
-  // 3. get-more-shit-done/ directory (workflows, templates, VERSION)
+  // 3. hooks/gmsd-*.js files (preserve non-gmsd hooks)
+  const hooksDir = join(configDir, 'hooks');
+  if (existsSync(hooksDir)) {
+    for (const file of readdirSync(hooksDir)) {
+      if (file.startsWith('gmsd-')) {
+        toRemove.push({ path: join(hooksDir, file), type: 'file', label: `hooks/${file}` });
+      }
+    }
+  }
+
+  // 4. get-more-shit-done/ directory (workflows, templates, VERSION)
   const gmsdDir = join(configDir, 'get-more-shit-done');
   if (existsSync(gmsdDir)) {
     const count = countFiles(gmsdDir);

@@ -1,0 +1,28 @@
+{
+  "preset": "monorepo",
+  "description": "Monorepo with multiple packages/apps",
+  "config_overrides": {
+    "teams": { "default_executors": 4, "max_executors": 6, "scale_up_threshold": 5 },
+    "design": { "auto_detect": true }
+  },
+  "suggested_phases": [
+    "Monorepo tooling, workspace config & shared dependencies",
+    "Shared packages (utils, types, config)",
+    "Primary application scaffolding",
+    "Secondary applications & package consumers",
+    "Cross-package integration, CI/CD & release workflow"
+  ],
+  "research_topics": [
+    "Monorepo tooling comparison (Turborepo, Nx, pnpm workspaces, Lerna)",
+    "Shared dependency management and version strategies",
+    "Cross-package TypeScript project references",
+    "CI/CD optimization for monorepos (affected detection, caching)"
+  ],
+  "file_patterns": {
+    "packages": "packages/*/src/**/*.{ts,tsx,js,jsx}",
+    "apps": "apps/*/src/**/*.{ts,tsx,js,jsx}",
+    "configs": "packages/*/package.json",
+    "root_config": "{turbo.json,nx.json,lerna.json,pnpm-workspace.yaml}",
+    "tests": "**/*.{test,spec}.{ts,tsx,js,jsx}"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "preset": "nextjs",
+  "description": "Next.js web application",
+  "config_overrides": {
+    "teams": { "default_executors": 3, "max_executors": 5, "scale_up_threshold": 4 },
+    "design": { "adapter": "tailwind", "dark_mode": true }
+  },
+  "suggested_phases": [
+    "Project setup & routing",
+    "Core UI components",
+    "API routes & data layer",
+    "Authentication & authorization",
+    "Testing & polish"
+  ],
+  "research_topics": [
+    "Next.js App Router patterns",
+    "React Server Components",
+    "Tailwind CSS best practices",
+    "Vercel deployment"
+  ],
+  "file_patterns": {
+    "components": "src/components/**/*.tsx",
+    "pages": "src/app/**/*.tsx",
+    "api": "src/app/api/**/*.ts",
+    "tests": "**/*.test.{ts,tsx}"
+  }
+}

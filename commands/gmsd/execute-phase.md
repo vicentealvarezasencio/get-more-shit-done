@@ -19,6 +19,46 @@ You are the GMSD execution orchestrator — the team lead. This is the core comm
    - If `phase_status` is `"paused"` for this phase, this is a resume. Read `.planning/HANDOFF.md` for context.
 5. Store the start timestamp for duration tracking.
 
+### Step 0.5: Pre-flight Plan Validation
+
+Before creating the team, run pre-flight validation on the plan to catch structural issues early.
+
+1. Read `.planning/phases/{N}-{name}/PLAN.md` (find the phase directory matching phase number `{N}`).
+2. Run the same validation checks as `/gmsd:preflight {N}`:
+   - **File existence checks** — verify files to modify exist, files to read exist
+   - **Dependency validation** — check for circular deps, missing dep references, logical ordering
+   - **File ownership validation** — check for duplicate ownership, shared files without sequential access
+   - **Acceptance criteria check** — verify every task has criteria, flag vague criteria
+   - **Git readiness** — uncommitted changes, branch check, git initialized
+
+3. **Behavior by mode:**
+
+   **Guided mode:**
+   - Show the full pre-flight report (same format as `/gmsd:preflight`)
+   - If errors: stop execution and show what needs fixing. Suggest `/gmsd:plan-phase {N}` to revise.
+   - If warnings: show them and ask "Proceed with execution despite warnings? (yes / fix first)"
+   - If all clear: show brief "Pre-flight passed" and continue
+
+   **Balanced mode:**
+   - Show a one-line summary: "Pre-flight: {X} passed, {Y} warnings, {Z} errors"
+   - If errors: stop execution and show the error details only
+   - If warnings or all clear: auto-proceed to Step 1
+
+   **YOLO mode:**
+   - Skip pre-flight entirely UNLESS there are errors
+   - Silently run the dependency and git checks (the fastest checks)
+   - If circular dependencies or missing git: stop with error
+   - Otherwise: proceed without showing any output
+
+4. If pre-flight blocks execution, update state.json history:
+```json
+{
+  "command": "/gmsd:execute-phase {N}",
+  "timestamp": "{ISO timestamp}",
+  "result": "Blocked by pre-flight: {Z} errors found. Execution not started."
+}
+```
+
 ### Step 1: Read Phase Plan
 
 1. Read `.planning/ROADMAP.md` to find phase `{N}`. Extract the phase name, goal, and dependencies.
@@ -128,6 +168,47 @@ Review the file ownership map from PLAN.md. For tasks that share files:
 - In the task description, note: "SHARED FILE: `{path}` is also modified by Task {X}. This task is sequenced after Task {X} to prevent conflicts. Read Task {X}'s changes before making yours."
 
 ### Step 3: Determine Team Size
+
+#### 3a: Adaptive Team Sizing (Historical Data)
+
+Before applying the default team size, check historical performance data to inform the recommendation.
+
+1. Read `state.json` -> `metrics.execution_history` for past phase executions.
+
+2. **If history exists (2+ phases completed):**
+
+   Calculate the following from past executions:
+
+   ```
+   avg_tasks_per_executor = sum(tasks_completed) / sum(peak_team_size) across all past phases
+   avg_error_rate = sum(tasks_failed) / sum(tasks_completed + tasks_failed) across all past phases
+   total_scaling_events = sum(scaling_events) across all past phases
+   phases_that_scaled = count of phases where scaling_events > 0
+   ```
+
+   **Apply adaptive recommendations:**
+
+   - **If `avg_error_rate > 0.20` (more than 20% failure rate):** Recommend FEWER executors than the default. Quality issues suggest agents are struggling with task complexity or coordination. Show:
+     "Past phases had a {X}% error rate. Recommending {N-1} executors instead of {N} to improve quality. (Use /gmsd:settings to override.)"
+
+   - **If `phases_that_scaled > 0` AND `phases_that_scaled / total_phases >= 0.5` (50%+ of phases needed scaling):** Recommend starting with a LARGER team. Show:
+     "Past phases frequently needed more executors ({phases_that_scaled}/{total_phases} scaled up). Recommending starting with {N+1} executors."
+
+   - **If `avg_tasks_per_executor > 5`:** Tasks are taking longer than expected per executor, or there are many tasks. Consider suggesting more executors if under max.
+
+   - **Otherwise:** Show the data and confirm the default is appropriate:
+     "Based on {N} previous phases: avg {X} tasks/executor, {Y}% success rate. Default team size of {Z} looks appropriate."
+
+3. **If no history exists (fewer than 2 phases completed):**
+   Skip adaptive sizing. Use config defaults. Optionally note: "No execution history yet. Using default team size. Adaptive sizing will kick in after 2+ phases."
+
+4. **Mode-aware behavior:**
+   - **guided/balanced:** Show the adaptive recommendation and ask for confirmation before applying.
+   - **yolo:** Auto-apply the adaptive recommendation silently (log it for metrics).
+
+5. **User override:** The adaptive suggestion is a RECOMMENDATION. If the user has explicitly set `default_executors` in config.json (and it differs from the template default), their explicit setting takes priority over the adaptive suggestion.
+
+#### 3b: Calculate Team Size
 
 Count the number of currently unblocked tasks (tasks with no pending dependencies):
 
@@ -314,6 +395,24 @@ Periodically update `.planning/STATE.md` with current progress:
 Progress: {completed}/{total} tasks ({percentage}%)
 ```
 
+#### 5a.1: Incremental Verification Tracking
+
+When an executor reports task completion with micro-verification results:
+
+1. **Track verification status per task** in a running tally:
+   - Tasks with "micro-verification: PASS" → verified
+   - Tasks with test failures noted → flagged for full verification
+   - Tasks without micro-verification results → unverified
+
+2. **Early warning**: If 3+ consecutive tasks report test failures, pause execution and alert the user:
+   "Multiple tasks are causing test failures. This may indicate a foundational issue. Options:
+   a) Continue execution (failures may resolve as dependencies complete)
+   b) Pause and investigate now
+   c) Run full verification on completed work"
+
+3. **Include in execution summary**: Show micro-verification results in the post-execution report:
+   "Tasks verified during execution: X/Y (Z had test warnings)"
+
 #### 5b: Handle Checkpoint Messages
 
 When an executor sends a checkpoint message:
@@ -443,6 +542,9 @@ Present to the user:
 | 2  | {name}                         | completed | executor-1 | 1 minor    |
 ...
 
+### Micro-Verification Summary
+Tasks verified during execution: {verified_count}/{total} ({flagged_count} had test warnings)
+
 ### Deviations Log
 {List of all deviations that were approved, with brief descriptions. Or "No deviations." if none.}
 
@@ -527,7 +629,14 @@ After updating the core state, record detailed execution metrics in `state.json`
 - Running totals: {total_tasks_completed} tasks across {len(execution_history)} phases
 ```
 
-### Step 9: What's Next
+### Step 9: Sync CLAUDE.md
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+
+### Step 10: What's Next
 
 ```
 ---

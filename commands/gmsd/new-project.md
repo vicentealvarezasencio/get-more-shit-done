@@ -63,6 +63,74 @@ Have a conversation with the user to collect project details. Ask these question
 
 Adapt your questions based on what you learn. If the user gives a comprehensive answer early, skip redundant follow-ups. If they are vague, dig deeper.
 
+### 2.5. Preset Detection
+
+After gathering project information, detect or offer a project-type preset. Presets provide sensible defaults for team sizes, design settings, suggested phases, and research topics.
+
+**1. Auto-detect project type from existing files in the repository:**
+
+Check for these indicators (in priority order):
+
+| Detection Signal | Preset |
+|---|---|
+| `package.json` with `"next"` in dependencies or devDependencies | `nextjs` |
+| `Podfile` exists, or any `*.xcodeproj` directory exists | `ios` |
+| `package.json` with `"react-native"` in dependencies | `react-native` |
+| `Dockerfile` exists AND no frontend files (no `src/app/`, no `src/pages/`, no `*.tsx` in src/) | `api` |
+| `manifest.json` with `browser_action`, `action`, or `content_scripts` fields | `chrome-extension` |
+| `package.json` with `workspaces` field, or `lerna.json` exists, or `pnpm-workspace.yaml` exists | `monorepo` |
+| `package.json` with `bin` field AND no `src/` directory with UI files (`.tsx`, `.jsx`, `.vue`, `.svelte`) | `cli` |
+
+**2. If a project type was detected, ask the user:**
+
+```
+ Detected {type} project. Use the {type} preset?
+
+ The {type} preset provides:
+ - Team settings: {default_executors} executors, max {max_executors}
+ - Design adapter: {adapter}
+ - Suggested phases: {list first 3 phases}...
+ - Research topics tailored to {type}
+
+ Options:
+   yes       — Apply preset defaults
+   customize — Apply preset, then let me adjust specific settings
+   skip      — No preset, use generic defaults
+```
+
+**3. If no project type was detected, offer preset selection:**
+
+```
+ Would you like to start from a project preset?
+ Presets provide optimized defaults for team sizes, phases, and research.
+
+ Available presets:
+   nextjs           — Next.js web application
+   ios              — iOS app (Swift/SwiftUI)
+   react-native     — React Native cross-platform app
+   api              — Backend API service
+   cli              — Command-line tool
+   chrome-extension — Browser extension
+   monorepo         — Multi-package workspace
+   none             — Start with generic defaults
+
+ Select a preset (or "none"):
+```
+
+**4. Apply the selected preset:**
+
+Read the preset file from the GMSD templates directory (`~/.claude/get-more-shit-done/templates/presets/{preset}.json`).
+
+- **Merge `config_overrides`** into config.json. Preset values override template defaults, but any explicit user choices (from the interview) take priority.
+- **Use `suggested_phases`** as a starting point when defining the milestone roadmap in Step 8. Present them as suggestions the user can modify, not fixed phases.
+- **Add `research_topics`** to the research team's context in Step 6. Append them to the standard research topics, do not replace them.
+- **Store the preset name** in config.json as `"preset": "{name}"` for future reference.
+- **Store `file_patterns`** in config.json as `"file_patterns": {...}` so other commands can use them for codebase navigation.
+
+If the user chose "customize", show the merged config and ask what they want to adjust before proceeding.
+
+If the user chose "skip" or "none", continue with the generic template defaults.
+
 ### 3. Read Existing Codebase (if any)
 
 Check if there is existing code in the repository. Look for:
@@ -335,7 +403,14 @@ Add to history:
 
 Update STATE.md to reflect current state.
 
-### 11. What's Next
+### 11. Sync CLAUDE.md
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+
+### 12. What's Next
 
 ```
 ---

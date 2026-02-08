@@ -1,0 +1,26 @@
+{
+  "preset": "cli",
+  "description": "Command-line tool or developer utility",
+  "config_overrides": {
+    "teams": { "default_executors": 2, "max_executors": 3, "scale_up_threshold": 3 },
+    "design": { "enabled": false, "auto_detect": false }
+  },
+  "suggested_phases": [
+    "CLI scaffolding, argument parsing & help system",
+    "Core commands & business logic",
+    "Configuration, output formatting & error handling",
+    "Testing & distribution (npm/brew/binary)"
+  ],
+  "research_topics": [
+    "CLI framework options (Commander, yargs, clap, cobra)",
+    "Terminal UX best practices (colors, spinners, progress bars)",
+    "Configuration file conventions (dotfiles, XDG)",
+    "Cross-platform compatibility and distribution"
+  ],
+  "file_patterns": {
+    "commands": "src/commands/**/*.{ts,js,rs}",
+    "utils": "src/utils/**/*.{ts,js,rs}",
+    "bin": "bin/**/*",
+    "tests": "**/*.{test,spec}.{ts,js,rs}"
+  }
+}

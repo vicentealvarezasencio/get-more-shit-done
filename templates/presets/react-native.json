@@ -1,0 +1,29 @@
+{
+  "preset": "react-native",
+  "description": "React Native cross-platform mobile application",
+  "config_overrides": {
+    "teams": { "default_executors": 3, "max_executors": 5, "scale_up_threshold": 4 },
+    "design": { "adapter": "react-native-stylesheet", "dark_mode": true }
+  },
+  "suggested_phases": [
+    "Project scaffolding & navigation",
+    "Core screens & shared components",
+    "State management & data layer",
+    "Native integrations & platform-specific code",
+    "Testing, performance & store submission"
+  ],
+  "research_topics": [
+    "React Native New Architecture (Fabric/TurboModules)",
+    "Expo vs bare workflow trade-offs",
+    "React Navigation v7+ patterns",
+    "Platform-specific UI/UX conventions (iOS vs Android)"
+  ],
+  "file_patterns": {
+    "screens": "src/screens/**/*.tsx",
+    "components": "src/components/**/*.tsx",
+    "navigation": "src/navigation/**/*.tsx",
+    "services": "src/services/**/*.ts",
+    "hooks": "src/hooks/**/*.ts",
+    "tests": "**/*.test.{ts,tsx}"
+  }
+}
