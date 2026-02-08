@@ -751,7 +751,69 @@ Regenerate STATE.md with:
   - Clear team member table
 ```
 
-### 5e. Generate Execution Summary
+### 5e. Generate SUMMARY.md
+
+```
+// Select summary template based on task count
+IF tasks_total <= 3:
+  template = "SUMMARY-minimal"
+ELSE IF tasks_total <= 8:
+  template = "SUMMARY-standard"
+ELSE:
+  template = "SUMMARY-complex"
+
+Log: "Selected {template} template for {tasks_total} tasks."
+
+// Determine result
+IF tasks_failed == 0:
+  result = "COMPLETE"
+ELSE IF tasks_failed < tasks_total AND tasks_completed > 0:
+  result = "PARTIAL"
+ELSE:
+  result = "FAILED"
+
+// Generate SUMMARY.md from the selected template
+// Populate all template variables from execution tracking state
+// Write to: .planning/phases/{N}-{name}/SUMMARY.md
+Write(.planning/phases/{N}-{name}/SUMMARY.md, render(template, {
+  PHASE_NUMBER: N,
+  PHASE_NAME: phase_name,
+  PHASE_GOAL: phase_goal,
+  RESULT: result,
+  TASKS_COMPLETED: tasks_completed,
+  TASKS_TOTAL: tasks_total,
+  TASKS_FAILED: tasks_failed,
+  DURATION: execution_duration,
+  COMMIT_COUNT: commits,
+  TEAM_SIZE: executor_count,
+  PEAK_TEAM_SIZE: peak_executor_count,
+  VERIFIED_TASKS: verified_tasks,
+  FLAGGED_TASKS: flagged_tasks,
+  UNVERIFIED_TASKS: unverified_tasks,
+  CHECKPOINT_COUNT: checkpoint_count,
+  CONFLICT_COUNT: conflict_count,
+  MODE: mode,
+  PHASE_SCOPE: phase_scope,
+  // Task rows, file changes, deviations, etc. populated from execution state
+  ...execution_tracking_state
+}))
+
+Log: "SUMMARY.md written to .planning/phases/{N}-{name}/SUMMARY.md"
+```
+
+### 5f. Generate History Digest
+
+```
+// Run the history digest generator to keep .planning/HISTORY-DIGEST.json fresh.
+// This provides pre-compiled phase stats for the planner and replay commands.
+Run: node {gmsd-install-path}/bin/gmsd-history-digest.js --project-dir={project-root}
+
+// If the script fails, log a warning but do not block completion.
+IF digest generation fails:
+  Log: "WARNING: History digest generation failed. Run manually: node bin/gmsd-history-digest.js"
+```
+
+### 5g. Report Execution Summary to User
 
 ```
 Lead to User: "
@@ -767,6 +829,7 @@ Execution Summary -- Phase {N}: {phase_name}
   Checkpoints:      {checkpoint_count}
   File Conflicts:   {conflict_count}
   Micro-Verified:   {verified_tasks}/{tasks_completed} tasks ({flagged_tasks} had test warnings)
+  Summary:          .planning/phases/{N}-{name}/SUMMARY.md ({template})
 
   Task Breakdown:
   {for each completed task:}

@@ -208,13 +208,25 @@ Task(
   - Mode: {mode}
   - Git commit prefix: {git.commit_prefix}
 
-  INPUT FILES (read these first):
-  - .planning/PROJECT.md -- project vision and requirements
-  - .planning/ROADMAP.md -- phase goals and dependencies
-  - .planning/phases/{N}-{name}/RESEARCH.md -- research findings
+  CONTEXT ASSEMBLY (two-step):
+
+  Step 1 — Quick scan (read these first for project awareness):
+  - .planning/config.json — project settings
+  - .planning/HISTORY-DIGEST.json — compiled history of completed phases (if exists)
+  - .planning/ROADMAP.md — phase goals, dependencies, current status
+
+  Step 2 — Deep load (read these for phase-specific planning):
+  - .planning/PROJECT.md — project vision and requirements
+  - .planning/phases/{N}-{name}/RESEARCH.md — research findings for this phase
   {IF has_context:}
-  - .planning/phases/{N}-{name}/CONTEXT.md -- user-locked decisions
+  - .planning/phases/{N}-{name}/CONTEXT.md — user-locked decisions
   {ENDIF}
+  {IF phase has dependencies in ROADMAP:}
+  - .planning/phases/{dep}-{name}/SUMMARY.md — what dependency phases built (only direct deps)
+  {ENDIF}
+
+  NOTE: Do NOT read full SUMMARY.md or VERIFICATION.md for non-dependency phases.
+  The HISTORY-DIGEST.json gives you sufficient context about those phases.
 
   CODEBASE EXPLORATION:
   Before writing the plan, explore the existing codebase to understand:

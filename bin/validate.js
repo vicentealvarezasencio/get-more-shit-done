@@ -34,7 +34,9 @@ const requiredFiles = [
   'README.md',
   'LICENSE',
   'bin/install.js',
-  'bin/validate.js'
+  'bin/validate.js',
+  'bin/gmsd-state.js',
+  'bin/gmsd-history-digest.js'
 ];
 
 const requiredCommands = [

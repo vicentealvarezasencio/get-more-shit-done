@@ -193,4 +193,11 @@ function main() {
   process.exit(0);
 }
 
-main();
+// Allow importing for testing
+export { loadJson, isGmsdExecution, detectTestCommand, detectLintCommand, runCommand, main };
+
+// Only run main when executed directly
+const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  main();
+}

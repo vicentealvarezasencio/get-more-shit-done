@@ -4,7 +4,8 @@
   "description": "A team-based project orchestration system for Claude Code. Research, design, plan, execute, verify — with coordinated agent teams.",
   "type": "module",
   "bin": {
-    "get-more-shit-done-cc": "bin/install.js"
+    "get-more-shit-done-cc": "bin/install.js",
+    "gmsd-state": "bin/gmsd-state.js"
   },
   "files": [
     "bin/",
@@ -18,7 +19,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node bin/install.js --dry-run",
+    "test": "node --test tests/**/*.test.js",
     "lint": "echo 'No linting configured'",
     "prepublishOnly": "node bin/validate.js"
   },

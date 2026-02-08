@@ -28,6 +28,8 @@ You are the GMSD replay orchestrator. You reconstruct and display a timeline of 
 
 ### Step 2: Gather Execution Data from State
 
+**Quick stats shortcut:** If `.planning/HISTORY-DIGEST.json` exists, read it first. It contains pre-compiled phase statistics (commits, files changed, task counts, duration, verification results, key decisions, and summaries) that can be used directly instead of re-parsing git history and state metrics. Fall back to the full reconstruction below only if the digest is missing or stale, or if you need detailed timeline events not captured in the digest.
+
 Read `.planning/state.json` and extract:
 
 1. **History entries:**

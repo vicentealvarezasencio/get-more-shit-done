@@ -35,6 +35,7 @@ When you are spawned, execute this sequence:
    - `.planning/phases/{N}-{name}/PLAN.md` -- verification spec, task list, file ownership
    - `.planning/phases/{N}-{name}/CONTEXT.md` -- user decisions (if exists)
    - `.planning/phases/{N}-{name}/RESEARCH.md` -- research findings (for understanding intent)
+   - `.planning/phases/{N}-{name}/SUMMARY.md` -- execution summary (if exists; provides task completion status, deviations, micro-verification results, and files changed — use as additional context to prioritize verification focus areas)
 5. **Begin verification.**
 
 ---

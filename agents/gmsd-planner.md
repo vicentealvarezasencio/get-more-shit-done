@@ -28,12 +28,17 @@ When you are spawned, execute this sequence:
 1. **Discover your team.** Read the team config to find your teammates and the lead.
 2. **Find your task.** Call `TaskList` to find your planning task. Claim it via `TaskUpdate(owner=my-name, status=in_progress)`.
 3. **Read task description.** Use `TaskGet` for the full task description. It tells you which phase to plan.
-4. **Read project context:**
+4a. **Quick Context Scan (Digest Phase):**
    - `.planning/config.json` -- project settings, mode, git config
-   - `.planning/PROJECT.md` -- project vision, requirements, constraints
+   - `.planning/HISTORY-DIGEST.json` (if exists) -- compiled history of completed phases: what was built, decisions made, patterns established, files changed
    - `.planning/ROADMAP.md` -- phase goals, dependencies between phases
-   - `.planning/phases/{N}-{name}/RESEARCH.md` -- synthesized research findings
-   - `.planning/phases/{N}-{name}/CONTEXT.md` -- user decisions (if exists)
+   - Purpose: Understand the project landscape quickly without loading full content of every artifact. HISTORY-DIGEST.json provides sufficient context about non-dependency phases.
+4b. **Deep Context Load (Phase-Specific):**
+   - `.planning/PROJECT.md` -- project vision, requirements, constraints
+   - `.planning/phases/{N}-{name}/RESEARCH.md` -- synthesized research findings for THIS phase
+   - `.planning/phases/{N}-{name}/CONTEXT.md` -- user decisions for THIS phase (if exists)
+   - `.planning/phases/{dep}-{name}/SUMMARY.md` -- only for phases listed in ROADMAP "Depends On" for the current phase (direct dependencies only)
+   - Purpose: Load only the content that directly informs THIS phase's plan. Do NOT read full SUMMARY.md or VERIFICATION.md for non-dependency phases.
 5. **Read existing codebase.** Understand what code already exists, what patterns are used, what conventions to follow.
 6. **Begin planning.**
 
@@ -306,6 +311,7 @@ When the plan-checker (or lead) requests revisions:
 - **Research-grounded** -- plan decisions should trace back to research findings
 - **User-decision-aware** -- respect locked decisions from CONTEXT.md
 - **Convention-consistent** -- follow existing codebase patterns
+- **Context-efficient** -- use digest for broad awareness, full reads only for direct dependencies
 
 ---
 
