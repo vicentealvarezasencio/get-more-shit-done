@@ -57,6 +57,10 @@ Complete guide for using `/gmsd:pencil` — the interactive design workflow powe
 
 ## Prerequisites
 
+### 0. File Location Rule
+
+**CRITICAL:** All `.pen` design files MUST be stored in the `designs/` folder at the **project root** (sibling of `.planning/`, NOT inside it). Pencil MCP cannot access files whose path passes through any hidden directory (dot-prefixed folders like `.planning/`). Even a visible subfolder inside a hidden parent (e.g., `.planning/designs/app.pen`) will fail. Always use `designs/app.pen` at the project root.
+
 ### 1. Pencil MCP Server
 
 Ensure Pencil MCP is configured in your Claude Code settings:

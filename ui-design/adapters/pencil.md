@@ -6,9 +6,10 @@ Rules for generating Pencil MCP design operations from UI specifications.
 Service: Pencil MCP
 Type: Direct execution (not prompts)
 Output: .pen design files via MCP tool operations
+File Location: ALL .pen files MUST be in `designs/` folder at the PROJECT ROOT (sibling of `.planning/`, NOT inside it). Pencil MCP cannot access files whose path passes through any hidden (dot-prefixed) directory — even visible subfolders inside `.planning/` will fail.
 Strength: Direct design execution, component systems, live validation via screenshots
 Best For: Rapid prototyping, design system creation, visual validation, iterative design
-Limitations: Requires Pencil MCP server, .pen format specific, learning curve for operations syntax
+Limitations: Requires Pencil MCP server, .pen format specific, learning curve for operations syntax, cannot use hidden directory paths
 Key Difference: Unlike other adapters that generate prompts for manual use, Pencil executes design operations directly
 </adapter_info>
 

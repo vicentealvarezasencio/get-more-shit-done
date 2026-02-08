@@ -84,10 +84,12 @@ Open an existing .pen file or create a new one.
 ### Process
 
 <step name="open_determine_file">
+**IMPORTANT — .pen file location:** Pencil MCP does NOT work reliably with files whose path passes through hidden directories (any folder starting with `.` like `.planning/`). Even if the file or its immediate folder isn't hidden, a hidden ancestor directory (e.g., `.planning/designs/app.pen`) will cause failures. ALL .pen files MUST be created in a `designs/` folder at the **project root** — at the same level as `.planning/`, NOT inside it. If `designs/` does not exist at the project root, create it first. NEVER create or open .pen files inside `.planning/`, `.planning/design/`, `.planning/designs/`, or any path that passes through a dot-prefixed directory.
+
 If no file specified:
-1. Check for existing .pen files in project
+1. Check for existing .pen files in the `designs/` folder
 2. If found, list them and ask which to open
-3. If none, ask to create new
+3. If none, offer to create new in `designs/` folder
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -107,15 +109,18 @@ Which would you like to open?
 </step>
 
 <step name="open_file">
-Open or create the file:
+Open or create the file. The file MUST be in the `designs/` folder at the **project root** (sibling of `.planning/`, not inside it):
 
 ```javascript
-// Open existing
+// Open existing (always from project-root designs/ folder)
 mcp__pencil__open_document({ filePathOrTemplate: "designs/app.pen" })
 
-// Or create new
+// Or create new — after creating, save to project-root designs/ folder
 mcp__pencil__open_document({ filePathOrTemplate: "new" })
+// The resulting file should be saved as designs/app.pen (or designs/{project-name}.pen)
 ```
+
+**If user provides a path that passes through any hidden directory** (e.g., `.planning/design/app.pen`, `.planning/designs/app.pen`), redirect to `designs/app.pen` at the project root instead and inform the user that Pencil cannot work with paths through hidden directories.
 </step>
 
 <step name="open_get_state">
@@ -969,6 +974,24 @@ Returns coordinates for new screen placement.
 
 <state_management>
 
+## File Location Rule
+
+**CRITICAL:** All `.pen` design files MUST live in the `designs/` folder at the **project root** (sibling of `.planning/`, NOT inside it). Pencil MCP cannot work with files whose path passes through any hidden directory (folders starting with `.`). Even a visible folder inside a hidden parent will fail.
+
+- Correct: `designs/app.pen`, `designs/components.pen`, `designs/variation-a.pen` (at project root)
+- Wrong: `.planning/design/app.pen`, `.planning/designs/app.pen`, `.planning/app.pen`
+
+```
+project-root/
+├── .planning/          ← hidden, Pencil CANNOT access anything here
+│   ├── design/         ← even though "design" is visible, parent is hidden
+│   └── ...
+├── designs/            ← CORRECT location for .pen files
+│   ├── app.pen
+│   └── components.pen
+└── ...
+```
+
 ## State Tracking
 
 Track Pencil session state in `.planning/ui-state/pencil-state.json`:
@@ -1036,6 +1059,20 @@ Debug:
   • /gmsd:pencil layout — Check for layout issues
   • Review operation syntax
 ```
+
+### File in Hidden Directory Path
+```
+⚠️ The .pen file path passes through a hidden directory (.planning/).
+
+Pencil MCP cannot access files through hidden (dot-prefixed) directories,
+even if the file's immediate folder is visible.
+
+Moving to: designs/app.pen (at project root)
+
+Run: /gmsd:pencil open designs/app.pen
+```
+
+If the user has an existing .pen file inside `.planning/design/`, `.planning/designs/`, or any path through a hidden directory, offer to move/copy it to the project-root `designs/` folder and open from there.
 
 ### Screen Not Found
 ```
