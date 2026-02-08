@@ -60,7 +60,6 @@ const requiredCommands = [
   'list-phase-assumptions.md',
   'research-phase.md',
   'new-milestone.md',
-  'join-discord.md',
   'sync.md',
   'preflight.md',
   'create-pr.md',

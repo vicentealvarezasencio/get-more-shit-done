@@ -156,8 +156,6 @@ Show all commands grouped by category. Use a clean table format.
 
  /gmsd:update               Check for and install the latest version
                            of GMSD from npm.
-
- /gmsd:join-discord          Community links and support resources.
 ```
 
 ### 4. Quick Start Guide

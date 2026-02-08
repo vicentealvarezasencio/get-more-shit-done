@@ -90,7 +90,6 @@ npx get-more-shit-done-cc --uninstall
 /gmsd:tour              Interactive walkthrough (~5 min)
 /gmsd:progress          Check status and route to next action
 /gmsd:update            Check for and install latest version
-/gmsd:join-discord      Community links and support
 /gmsd:help              Full command reference
 ```
 
