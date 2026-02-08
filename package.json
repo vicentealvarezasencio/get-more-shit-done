@@ -14,6 +14,7 @@
     "agents/",
     "workflows/",
     "templates/",
+    "ui-design/",
     "hooks/",
     "README.md",
     "LICENSE"
@@ -43,7 +44,10 @@
     "ai",
     "development-workflow",
     "task-management",
-    "team-coordination"
+    "team-coordination",
+    "ui-design",
+    "design-tokens",
+    "design-system"
   ],
   "author": "Vicente Alvarez Asencio",
   "license": "MIT",

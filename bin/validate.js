@@ -66,7 +66,24 @@ const requiredCommands = [
   'check-design-drift.md',
   'replay.md',
   'estimate-cost.md',
-  'tour.md'
+  'tour.md',
+  'init.md',
+  'setup-tokens.md',
+  'design-screens.md',
+  'define-components.md',
+  'patterns.md',
+  'pencil.md',
+  'export.md',
+  'scan.md',
+  'generate-specs.md',
+  'reverse-engineer.md',
+  'import-tokens.md',
+  'import-design.md',
+  'realize.md',
+  'logo.md',
+  'decisions.md',
+  'ui-sync.md',
+  'ui-status.md'
 ];
 
 const requiredAgents = [
@@ -74,7 +91,13 @@ const requiredAgents = [
   'gmsd-planner.md',
   'gmsd-executor.md',
   'gmsd-verifier.md',
-  'gmsd-codebase-mapper.md'
+  'gmsd-codebase-mapper.md',
+  'gmsd-ui-designer.md',
+  'gmsd-ui-researcher.md',
+  'gmsd-ui-specifier.md',
+  'gmsd-ui-prompter.md',
+  'gmsd-ui-brander.md',
+  'gmsd-ui-scanner.md'
 ];
 
 let errors = [];
@@ -123,7 +146,7 @@ function validatePackageJson() {
   }
 
   // Check files array includes required directories
-  const requiredInFiles = ['bin/', 'commands/', 'agents/'];
+  const requiredInFiles = ['bin/', 'commands/', 'agents/', 'ui-design/'];
   for (const item of requiredInFiles) {
     if (!pkg.files || !pkg.files.includes(item)) {
       errors.push(`package.json "files" should include: ${item}`);
@@ -173,6 +196,15 @@ checkDirectory('commands/gmsd', requiredCommands, 'command');
 log('Checking agents/...', 'bright');
 checkDirectory('agents', requiredAgents, 'agent');
 
+// Check ui-design subdirectories
+log('Checking ui-design/...', 'bright');
+for (const subdir of ['adapters', 'templates', 'references']) {
+  const subdirPath = join(packageRoot, 'ui-design', subdir);
+  if (!existsSync(subdirPath)) {
+    errors.push(`Missing ui-design subdirectory: ui-design/${subdir}`);
+  }
+}
+
 // Summary
 console.log('\n' + '─'.repeat(50));
 
@@ -180,12 +212,14 @@ const commandCount = countFiles('commands/gmsd');
 const agentCount = countFiles('agents');
 const workflowCount = countFiles('workflows');
 const templateCount = countFiles('templates');
+const uiDesignCount = countFiles('ui-design');
 
 log(`\nPackage: ${pkg.name}@${pkg.version}`, 'bright');
 log(`Commands: ${commandCount} files`, 'bright');
 log(`Agents: ${agentCount} files`, 'bright');
 log(`Workflows: ${workflowCount} files`, 'bright');
 log(`Templates: ${templateCount} files`, 'bright');
+log(`UI Design: ${uiDesignCount} files`, 'bright');
 
 if (warnings.length > 0) {
   log(`\nWarnings (${warnings.length}):`, 'yellow');

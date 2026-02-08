@@ -93,6 +93,7 @@ ${colors.bright}What gets installed:${colors.reset}
   agents/           Specialized agents (researcher, planner, executor, verifier, etc.)
   workflows/        Orchestrator workflow definitions
   templates/        Project and phase templates
+  ui-design/        UI design adapters, templates, and references
 
 ${colors.bright}Default location:${colors.reset}
   ~/.claude/        Global installation (works across all projects)
@@ -244,6 +245,7 @@ async function install() {
   }
 
   const pathReplacements = {
+    '~/.claude/ui-design/': `${pathPrefix}/get-more-shit-done/ui-design/`,
     '~/.claude': pathPrefix
   };
 
@@ -366,7 +368,29 @@ async function install() {
   }
   console.log();
 
-  // 5. Install hooks
+  // 5. Install ui-design
+  const uiDesignSrc = join(packageRoot, 'ui-design');
+  const uiDesignDest = join(configDir, 'get-more-shit-done', 'ui-design');
+  const uiDesignCount = countFiles(uiDesignSrc);
+
+  log(`${colors.bright}UI Design${colors.reset} (${uiDesignCount} files)`, 'cyan');
+  if (existsSync(uiDesignSrc)) {
+    if (!isDryRun) {
+      removeDir(uiDesignDest);
+    }
+    const copied = copyDir(uiDesignSrc, uiDesignDest, { pathReplacements, dryRun: isDryRun });
+    totalCopied += copied;
+    if (!isDryRun) {
+      log(`  ✓ Installed to get-more-shit-done/ui-design/`, 'green');
+    } else {
+      log(`  Would install to get-more-shit-done/ui-design/`, 'dim');
+    }
+  } else {
+    log(`  - No ui-design files found`, 'dim');
+  }
+  console.log();
+
+  // 6. Install hooks
   const hooksSrc = join(packageRoot, 'hooks');
   const hooksDest = join(configDir, 'hooks');
   const hookFiles = ['gmsd-task-completed.js', 'gmsd-teammate-idle.js', 'gmsd-file-tracker.js'];
@@ -410,7 +434,7 @@ async function install() {
   }
   console.log();
 
-  // 6. Write version file
+  // 7. Write version file
   if (!isDryRun) {
     const versionDir = join(configDir, 'get-more-shit-done');
     mkdirSync(versionDir, { recursive: true });
@@ -418,7 +442,7 @@ async function install() {
     log(`Version file written (${VERSION})`, 'green');
   }
 
-  // 7. Apply preset if specified
+  // 8. Apply preset if specified
   if (presetValue && !isDryRun) {
     if (!validPresets.includes(presetValue)) {
       log(`\n⚠ Unknown preset: "${presetValue}"`, 'yellow');
@@ -450,7 +474,7 @@ async function install() {
     }
   }
 
-  // 8. Check Agent Teams setting
+  // 9. Check Agent Teams setting
   const agentTeamsEnabled = checkAgentTeams(configDir);
 
   // Summary
@@ -487,7 +511,6 @@ async function install() {
     }
     log(`  3. Run ${colors.cyan}/gmsd:tour${colors.reset}${colors.dim} for an interactive walkthrough`);
     log(`  4. Run ${colors.cyan}/gmsd:help${colors.reset}${colors.dim} for all commands`);
-    log(`\nWorks alongside ui-design-cc for UI/UX workflows`, 'dim');
   }
 
   console.log();

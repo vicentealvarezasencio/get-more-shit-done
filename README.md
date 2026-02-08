@@ -146,8 +146,9 @@ Research Team (parallel domain exploration with live broadcasts)
 
 ## Works With
 
-- [ui-design-cc](https://github.com/vicentealvarezasencio/ui-design-cc) — UI/UX design specifications (integrated as design phase)
 - [GSD](https://github.com/vicentealvarezasencio/get-shit-done) — The original single-agent workflow (GMSD successor)
+
+> **Note:** UI/UX design capabilities (formerly [ui-design-cc](https://github.com/vicentealvarezasencio/ui-design-cc)) are now fully integrated into GMSD. Use `/gmsd:init`, `/gmsd:design-screens`, `/gmsd:export`, and other UI commands directly.
 
 ## License
 

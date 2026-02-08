@@ -70,7 +70,8 @@ Show all commands grouped by category. Use a clean table format.
 
  /gmsd:design-phase {N}    UI/UX specifications for phases with
                            visual components. Tokens, screens,
-                           component specs. (Requires ui-design-cc)
+                           component specs. (See also: /gmsd:init,
+                          /gmsd:design-screens)
 
  /gmsd:execute-phase {N}   Team execution with shared task list.
                            Spawns executor team. Continuous flow —
@@ -156,6 +157,48 @@ Show all commands grouped by category. Use a clean table format.
 
  /gmsd:update               Check for and install the latest version
                            of GMSD from npm.
+
+ UI DESIGN
+ ─────────────────────────────────────────────────────────────
+ /gmsd:init               Initialize UI design context. Platform,
+                          framework, constraints. Creates UI-CONTEXT.md.
+
+ /gmsd:setup-tokens       Set up design token system. Colors, typography,
+                          spacing. Creates design-tokens.json.
+
+ /gmsd:design-screens     Create screen specifications. 10-section format
+                          with wireframes. Creates UI-SPEC.md, screens/*.md.
+
+ /gmsd:define-components  Extract component inventory. Props, variants,
+                          states, accessibility. Creates COMPONENTS.md.
+
+ /gmsd:patterns           Document reusable UI patterns.
+
+ /gmsd:export [service]   Generate service-specific prompts.
+                          Services: stitch, v0, figma, pencil, generic.
+
+ /gmsd:pencil [action]    Interactive design with Pencil MCP.
+                          open, sync, components, validate, iterate.
+
+ /gmsd:scan               Analyze existing codebase for UI patterns.
+
+ /gmsd:generate-specs     Generate specs from code analysis.
+
+ /gmsd:reverse-engineer   One-shot: scan + generate + export.
+
+ /gmsd:logo               Create logo and favicon specifications.
+
+ /gmsd:import-tokens      Import tokens from external sources.
+
+ /gmsd:import-design      Import design from external tools.
+
+ /gmsd:realize [screen]   Mark screens as implemented.
+
+ /gmsd:ui-sync            Detect and fix UI spec drift.
+
+ /gmsd:ui-status          Show UI specification coverage.
+
+ /gmsd:decisions          View design decision log.
 ```
 
 ### 4. Quick Start Guide
@@ -173,6 +216,13 @@ Show a quick start section for new users:
    4. /gmsd:execute-phase 1      Run the team
    5. /gmsd:verify-work 1        Check the results
    6. /gmsd:progress             See what's next
+
+ UI design workflow:
+   1. /gmsd:init                 Set up UI context
+   2. /gmsd:setup-tokens         Define design token system
+   3. /gmsd:design-screens       Create screen specifications
+   4. /gmsd:define-components    Build component inventory
+   5. /gmsd:export pencil        Generate prompts for Pencil
 
  Returning to a project:
    1. /gmsd:progress             See where you left off
