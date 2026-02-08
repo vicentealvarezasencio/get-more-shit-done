@@ -47,7 +47,18 @@ const requiredCommands = [
   'quick.md',
   'update.md',
   'map-codebase.md',
-  'retrospective.md'
+  'retrospective.md',
+  'add-todo.md',
+  'check-todos.md',
+  'add-phase.md',
+  'insert-phase.md',
+  'remove-phase.md',
+  'audit-milestone.md',
+  'plan-milestone-gaps.md',
+  'list-phase-assumptions.md',
+  'research-phase.md',
+  'new-milestone.md',
+  'join-discord.md'
 ];
 
 const requiredAgents = [

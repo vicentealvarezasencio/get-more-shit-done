@@ -53,9 +53,16 @@ Show all commands grouped by category. Use a clean table format.
 
  PHASE WORKFLOW (run in order for each phase)
  ─────────────────────────────────────────────────────────────
+ /gmsd:list-phase-assumptions {N}
+                           Surface Claude's assumptions about a phase
+                           before planning. Challenge and correct them.
+
  /gmsd:discuss-phase {N}   Gather user decisions before planning.
                            Architecture, technology, UX, scope, and
                            priority choices. Writes CONTEXT.md.
+
+ /gmsd:research-phase {N}  Standalone research for a phase. Run before
+                           planning to review findings separately.
 
  /gmsd:plan-phase {N}      Research + plan with verification spec.
                            Spawns planner + checker team. Creates
@@ -89,6 +96,25 @@ Show all commands grouped by category. Use a clean table format.
                            mapper agents. Tech, architecture, quality,
                            and concerns analysis.
 
+ TODOS
+ ─────────────────────────────────────────────────────────────
+ /gmsd:add-todo             Capture an idea, task, or note as a todo.
+                           Auto-tags source and context.
+
+ /gmsd:check-todos          Review and manage pending todos. Mark done,
+                           dismiss, or convert to phase tasks.
+
+ ROADMAP MANAGEMENT
+ ─────────────────────────────────────────────────────────────
+ /gmsd:add-phase            Add a new phase to the end of the current
+                           milestone's roadmap.
+
+ /gmsd:insert-phase         Insert urgent work between existing phases
+                           using decimal numbering (e.g., 3.1).
+
+ /gmsd:remove-phase         Remove a pending phase from the roadmap
+                           and renumber subsequent phases.
+
  NAVIGATION
  ─────────────────────────────────────────────────────────────
  /gmsd:progress             Check full project status and get routed
@@ -103,6 +129,12 @@ Show all commands grouped by category. Use a clean table format.
 
  LIFECYCLE
  ─────────────────────────────────────────────────────────────
+ /gmsd:audit-milestone      Audit milestone against original intent.
+                           Quality gate before archiving.
+
+ /gmsd:plan-milestone-gaps  Create phases to close gaps found by
+                           the milestone audit.
+
  /gmsd:milestone            Archive completed milestone, prepare next
                            version. Generates completion report.
 
@@ -110,11 +142,16 @@ Show all commands grouped by category. Use a clean table format.
                            metrics, lessons learned. Run before or
                            after /gmsd:milestone.
 
+ /gmsd:new-milestone        Start a new milestone cycle. Updates
+                           PROJECT.md and resets state.
+
  /gmsd:settings             View and modify GMSD configuration.
                            Mode, team sizes, git settings, models.
 
  /gmsd:update               Check for and install the latest version
                            of GMSD from npm.
+
+ /gmsd:join-discord          Community links and support resources.
 ```
 
 ### 4. Quick Start Guide

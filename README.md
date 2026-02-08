@@ -67,9 +67,20 @@ npx get-more-shit-done-cc --uninstall
 /gmsd:debug             Collaborative debugging with shared root causes
 /gmsd:quick             Quick task without full workflow ceremony
 /gmsd:map-codebase      Analyze existing codebase with parallel mappers
+/gmsd:add-todo          Capture ideas and tasks as todos
+/gmsd:check-todos       Review and manage pending todos
+/gmsd:add-phase         Add a phase to the roadmap
+/gmsd:insert-phase      Insert urgent work (decimal phases)
+/gmsd:remove-phase      Remove a pending phase and renumber
+/gmsd:research-phase    Standalone research before planning
+/gmsd:list-phase-assumptions  Surface assumptions before planning
+/gmsd:audit-milestone   Audit milestone against original intent
+/gmsd:plan-milestone-gaps  Create phases to close audit gaps
 /gmsd:retrospective     Post-milestone analysis and lessons learned
+/gmsd:new-milestone     Start a new milestone cycle
 /gmsd:progress          Check status and route to next action
 /gmsd:update            Check for and install latest version
+/gmsd:join-discord      Community links and support
 /gmsd:help              Full command reference
 ```
 
