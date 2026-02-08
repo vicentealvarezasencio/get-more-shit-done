@@ -9,5 +9,15 @@
   "completed_phases": [],
   "last_command": null,
   "last_updated": null,
-  "history": []
+  "history": [],
+  "metrics": {
+    "total_tasks_completed": 0,
+    "total_gap_tasks_created": 0,
+    "total_debug_cycles": 0,
+    "total_deviations": 0,
+    "peak_team_size": 0,
+    "phases_passed_first_try": 0,
+    "phases_needed_debug": 0,
+    "execution_history": []
+  }
 }

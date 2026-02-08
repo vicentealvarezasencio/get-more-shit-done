@@ -7,9 +7,10 @@
  * or ./.claude/ (local) for use with Claude Code.
  *
  * Usage:
- *   npx get-more-shit-done-cc          # Global install (recommended)
- *   npx get-more-shit-done-cc --local  # Local install (project-specific)
- *   npx get-more-shit-done-cc --dry-run # Preview without installing
+ *   npx get-more-shit-done-cc              # Global install (recommended)
+ *   npx get-more-shit-done-cc --local      # Local install (project-specific)
+ *   npx get-more-shit-done-cc --dry-run    # Preview without installing
+ *   npx get-more-shit-done-cc --uninstall  # Remove GMSD files
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync, statSync } from 'fs';
@@ -28,6 +29,8 @@ const isLocal = args.includes('--local');
 const isGlobal = args.includes('--global');
 const isDryRun = args.includes('--dry-run');
 const isHelp = args.includes('--help') || args.includes('-h');
+const isUninstall = args.includes('--uninstall');
+const isForce = args.includes('--force');
 
 // Version from package.json
 const packageJson = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf-8'));
@@ -73,6 +76,8 @@ ${colors.bright}Options:${colors.reset}
   --global      Install to ~/.claude/ (default)
   --local       Install to ./.claude/ (project-specific)
   --dry-run     Preview installation without making changes
+  --uninstall   Remove GMSD files (use with --global or --local to skip prompt)
+  --force       Skip confirmation prompt during uninstall
   --help, -h    Show this help message
 
 ${colors.bright}What gets installed:${colors.reset}
@@ -383,9 +388,100 @@ async function install() {
   console.log();
 }
 
+// Uninstall GMSD files
+async function uninstall() {
+  showBanner();
+
+  const configDir = await getInstallDir();
+  const isLocalInstall = configDir.includes(process.cwd());
+  const installType = isLocalInstall ? 'local (./.claude/)' : 'global (~/.claude/)';
+
+  log(`Uninstalling GMSD from: ${configDir} (${installType})\n`, 'blue');
+
+  // Collect items to remove
+  const toRemove = [];
+
+  // 1. commands/gmsd/ directory
+  const commandsDir = join(configDir, 'commands', 'gmsd');
+  if (existsSync(commandsDir)) {
+    const count = countFiles(commandsDir);
+    toRemove.push({ path: commandsDir, type: 'directory', label: `commands/gmsd/ (${count} files)` });
+  }
+
+  // 2. agents/gmsd-*.md files (preserve non-gmsd agents)
+  const agentsDir = join(configDir, 'agents');
+  if (existsSync(agentsDir)) {
+    for (const file of readdirSync(agentsDir)) {
+      if (file.startsWith('gmsd-')) {
+        toRemove.push({ path: join(agentsDir, file), type: 'file', label: `agents/${file}` });
+      }
+    }
+  }
+
+  // 3. get-more-shit-done/ directory (workflows, templates, VERSION)
+  const gmsdDir = join(configDir, 'get-more-shit-done');
+  if (existsSync(gmsdDir)) {
+    const count = countFiles(gmsdDir);
+    toRemove.push({ path: gmsdDir, type: 'directory', label: `get-more-shit-done/ (${count} files)` });
+  }
+
+  if (toRemove.length === 0) {
+    log('No GMSD files found. Nothing to uninstall.', 'yellow');
+    console.log();
+    return;
+  }
+
+  // Show what will be removed
+  log(`${colors.bright}The following will be removed:${colors.reset}`, 'yellow');
+  for (const item of toRemove) {
+    log(`  - ${item.label}`, 'dim');
+  }
+  console.log();
+
+  // Confirmation prompt (skip with --force)
+  if (!isForce) {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    const confirmed = await new Promise((resolve) => {
+      rl.question(`${colors.yellow}Proceed with uninstall? [y/N]: ${colors.reset}`, (answer) => {
+        rl.close();
+        resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+      });
+    });
+
+    if (!confirmed) {
+      log('\nUninstall cancelled.', 'dim');
+      return;
+    }
+  }
+
+  // Remove items
+  for (const item of toRemove) {
+    if (item.type === 'directory') {
+      rmSync(item.path, { recursive: true, force: true });
+    } else {
+      rmSync(item.path, { force: true });
+    }
+    log(`  Removed ${item.label}`, 'red');
+  }
+
+  console.log(colors.bright + '─'.repeat(50) + colors.reset);
+  log(`\nGMSD has been uninstalled from ${installType}.`, 'green');
+  log('Other Claude Code configs, settings, and non-GMSD agents were preserved.', 'dim');
+  console.log();
+}
+
 // Main
 if (isHelp) {
   showHelp();
+} else if (isUninstall) {
+  uninstall().catch((err) => {
+    console.error('Uninstall failed:', err.message);
+    process.exit(1);
+  });
 } else {
   install().catch((err) => {
     console.error('Installation failed:', err.message);

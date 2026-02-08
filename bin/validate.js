@@ -43,14 +43,19 @@ const requiredCommands = [
   'execute-phase.md',
   'verify-work.md',
   'progress.md',
-  'help.md'
+  'help.md',
+  'quick.md',
+  'update.md',
+  'map-codebase.md',
+  'retrospective.md'
 ];
 
 const requiredAgents = [
   'gmsd-researcher.md',
   'gmsd-planner.md',
   'gmsd-executor.md',
-  'gmsd-verifier.md'
+  'gmsd-verifier.md',
+  'gmsd-codebase-mapper.md'
 ];
 
 let errors = [];

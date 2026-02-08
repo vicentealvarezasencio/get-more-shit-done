@@ -79,6 +79,16 @@ Show all commands grouped by category. Use a clean table format.
                            causes. Spawns debugger team to investigate
                            verification gaps.
 
+ QUICK ACTIONS
+ ─────────────────────────────────────────────────────────────
+ /gmsd:quick                Execute a small task without the full
+                           workflow ceremony. Bug fixes, tweaks,
+                           small features. Atomic commit included.
+
+ /gmsd:map-codebase         Analyze an existing codebase with parallel
+                           mapper agents. Tech, architecture, quality,
+                           and concerns analysis.
+
  NAVIGATION
  ─────────────────────────────────────────────────────────────
  /gmsd:progress             Check full project status and get routed
@@ -96,8 +106,15 @@ Show all commands grouped by category. Use a clean table format.
  /gmsd:milestone            Archive completed milestone, prepare next
                            version. Generates completion report.
 
+ /gmsd:retrospective        Post-milestone analysis. Timeline, quality
+                           metrics, lessons learned. Run before or
+                           after /gmsd:milestone.
+
  /gmsd:settings             View and modify GMSD configuration.
                            Mode, team sizes, git settings, models.
+
+ /gmsd:update               Check for and install the latest version
+                           of GMSD from npm.
 ```
 
 ### 4. Quick Start Guide

@@ -476,6 +476,57 @@ Update `.planning/STATE.md` to reflect the completed execution.
 
 Update the ROADMAP.md phase status to `"executed"`.
 
+### Step 8b: Record Execution Metrics
+
+After updating the core state, record detailed execution metrics in `state.json`:
+
+1. **Gather phase metrics:**
+   - `tasks_completed`: count of tasks with `status: completed`
+   - `tasks_failed`: count of tasks with `status: skipped` or that could not be completed
+   - `deviations_approved`: count of deviations the lead approved during execution
+   - `deviations_rejected`: count of deviations the lead rejected
+   - `peak_team_size`: maximum number of concurrent executors (including any scaled-up executors)
+   - `scaling_events`: count of times the team was scaled up during execution
+   - `start_time`: the timestamp stored in Step 0
+   - `end_time`: the current ISO timestamp
+   - `commits_made`: count commits from `git log --oneline --grep="{commit_prefix}(phase-{N})"` (or count from Step 7 metrics)
+
+2. **Append to `metrics.execution_history`:**
+```json
+{
+  "phase": {N},
+  "phase_name": "{name}",
+  "tasks_completed": {tasks_completed},
+  "tasks_failed": {tasks_failed},
+  "deviations_approved": {deviations_approved},
+  "deviations_rejected": {deviations_rejected},
+  "peak_team_size": {peak_team_size},
+  "scaling_events": {scaling_events},
+  "start_time": "{start_time}",
+  "end_time": "{end_time}",
+  "commits_made": {commits_made}
+}
+```
+
+3. **Update running totals in `metrics`:**
+   - `total_tasks_completed += tasks_completed`
+   - `total_deviations += deviations_approved + deviations_rejected`
+   - `peak_team_size = max(metrics.peak_team_size, peak_team_size)`
+   - If this was a gap-fix re-execution: `total_gap_tasks_created += tasks_completed`, `total_debug_cycles += 1`, `phases_needed_debug += 1`
+   - If this was a first-time execution (not a gap-fix): `phases_passed_first_try += 1` (this may be revised after verification)
+
+4. **Show a brief metrics summary in the post-execution output:**
+
+```
+### Execution Metrics — Phase {N}
+- Tasks completed: {tasks_completed}/{total}
+- Time elapsed: {duration}
+- Peak team size: {peak_team_size} executors
+- Commits made: {commits_made}
+- Deviations: {deviations_approved} approved, {deviations_rejected} rejected
+- Running totals: {total_tasks_completed} tasks across {len(execution_history)} phases
+```
+
 ### Step 9: What's Next
 
 ```

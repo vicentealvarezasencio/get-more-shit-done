@@ -305,6 +305,106 @@ Wait for user response.
    - Clear `.planning/design/` if it exists (artifacts are in the archive)
    - Keep `config.json`, `PROJECT.md`, and the new `ROADMAP.md`
 
+7. **Carry forward context from the completed milestone:**
+
+   This step preserves institutional knowledge so the next milestone starts with full context rather than from scratch.
+
+   **a. Carry forward design system:**
+   Check the archive at `.planning/archive/v{version}/design/` for these files:
+   - `design-tokens.json`
+   - `COMPONENTS.md`
+   - `UI-CONTEXT.md`
+
+   If any of these exist, copy them into the new milestone's `.planning/design/` directory (create the directory if needed). These files form the design system foundation and should persist across milestones.
+
+   **b. Carry forward key decisions:**
+   Read all `CONTEXT.md` files from `.planning/archive/v{version}/phases/*/CONTEXT.md`. Extract any decisions that are tagged or described as "project-wide", "architectural", or "cross-phase" (decisions that affect the project beyond a single phase).
+
+   Write these to `.planning/CARRIED-CONTEXT.md`:
+   ```markdown
+   # Carried Context — from v{version}
+
+   Decisions and context carried forward from the previous milestone. These should be respected unless explicitly revisited.
+
+   ---
+
+   ## Architectural & Project-Wide Decisions
+
+   | # | Decision                              | Origin Phase | Rationale (brief)                  |
+   |---|---------------------------------------|--------------|------------------------------------|
+   | 1 | {decision}                            | Phase {N}    | {rationale}                        |
+   | 2 | {decision}                            | Phase {N}    | {rationale}                        |
+   ...
+
+   ---
+
+   *Carried forward on {current_date} by `/gmsd:milestone`.*
+   ```
+
+   If no project-wide or architectural decisions are found, skip this file.
+
+   **c. Carry forward lessons from retrospective:**
+   Check if `.planning/archive/v{version}/RETROSPECTIVE.md` exists (created by `/gmsd:retrospective`).
+
+   If it exists, extract the "Lessons Learned" section (including "Patterns to Repeat", "Patterns to Avoid", and "Suggestions for Next Milestone"). Append these as a reference section at the end of the updated `.planning/PROJECT.md`:
+
+   ```markdown
+   ---
+
+   ## Lessons from v{version}
+
+   *Carried forward from the v{version} retrospective for reference during this milestone.*
+
+   ### Patterns to Repeat
+   {extracted patterns}
+
+   ### Patterns to Avoid
+   {extracted patterns}
+
+   ### Suggestions Applied
+   {extracted suggestions, with notes on which are being adopted}
+   ```
+
+   If the retrospective does not exist, skip this sub-step.
+
+   **d. Carry forward tech debt:**
+   Read all `VERIFICATION.md` files from `.planning/archive/v{version}/phases/*/VERIFICATION.md`. Identify any gaps that were "accepted" (not fixed) — these are verification gaps with severity noted but marked as accepted risks.
+
+   If any accepted gaps exist, write `.planning/TECH-DEBT.md`:
+   ```markdown
+   # Tech Debt — Carried from v{version}
+
+   Verification gaps that were accepted (not fixed) during v{version}. Consider addressing these in the current milestone.
+
+   ---
+
+   | # | Gap Description                        | Severity | Origin Phase | Reason Accepted                    |
+   |---|----------------------------------------|----------|--------------|------------------------------------|
+   | 1 | {gap}                                  | {level}  | Phase {N}    | {reason}                           |
+   | 2 | {gap}                                  | {level}  | Phase {N}    | {reason}                           |
+   ...
+
+   ---
+
+   *Generated on {current_date} by `/gmsd:milestone`.*
+   ```
+
+   If no accepted gaps exist, skip this file.
+
+   **e. Report carry-forward to user:**
+   After completing the carry-forward, briefly inform the user:
+
+   ```
+   ### Context Carried Forward
+
+   From v{version} to v{next_version}:
+   {Show each item that was carried, or "skipped" if not applicable:}
+   - Design system: {carried X files / no design files to carry}
+   - Key decisions: {carried X decisions to CARRIED-CONTEXT.md / no project-wide decisions found}
+   - Retrospective lessons: {appended to PROJECT.md / no retrospective found — consider running `/gmsd:retrospective`}
+   - Tech debt: {X accepted gaps written to TECH-DEBT.md / no accepted gaps}
+   ```
+
 **If "Adjust scope":**
 Present the current scope and ask the user to describe changes. Update `PROJECT.md` accordingly, then proceed as "Start next milestone."
 

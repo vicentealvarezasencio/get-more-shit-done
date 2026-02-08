@@ -32,6 +32,9 @@ npx get-more-shit-done-cc --local
 
 # Preview without installing
 npx get-more-shit-done-cc --dry-run
+
+# Uninstall
+npx get-more-shit-done-cc --uninstall
 ```
 
 ### Requirements
@@ -62,7 +65,11 @@ npx get-more-shit-done-cc --dry-run
 /gmsd:execute-phase     Team execution with shared task list
 /gmsd:verify-work       Goal-backward verification
 /gmsd:debug             Collaborative debugging with shared root causes
+/gmsd:quick             Quick task without full workflow ceremony
+/gmsd:map-codebase      Analyze existing codebase with parallel mappers
+/gmsd:retrospective     Post-milestone analysis and lessons learned
 /gmsd:progress          Check status and route to next action
+/gmsd:update            Check for and install latest version
 /gmsd:help              Full command reference
 ```
 
@@ -100,6 +107,7 @@ Research Team (parallel domain exploration with live broadcasts)
 | **Executor** | Execution | Claims tasks, writes code, atomic commits |
 | **Verifier** | Verification | Goal-backward analysis, creates gap tasks |
 | **Debugger** | Debug | Root cause analysis, shares findings with peers |
+| **Codebase Mapper** | Analysis | Parallel codebase exploration (tech, arch, quality, concerns) |
 
 ## Philosophy
 
@@ -112,6 +120,7 @@ Research Team (parallel domain exploration with live broadcasts)
 7. **Debug collaboratively** — share root causes across agents
 8. **Continuous flow over wave batching** — no artificial boundaries
 9. **Observable execution** — every agent visible in tmux
+10. **Learn from every milestone** — retrospectives and context carry-forward
 
 ## Works With
 
