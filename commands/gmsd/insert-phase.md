@@ -10,17 +10,15 @@ Sometimes work surfaces mid-project that cannot wait until the end of the roadma
 
 ## Instructions
 
-### 1. Read Project State
+### 1. Read Project State and Initialize
 
-Attempt to read the following files from the current working directory:
+Load phase operation context:
 
-- `.planning/state.json` — Current execution state
-- `.planning/config.json` — Project configuration
-- `.planning/ROADMAP.md` — Phase breakdown
+```bash
+INIT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js init phase-op "${after_phase}")
+```
 
-**If `.planning/state.json` does NOT exist:**
-
-Show this message and stop:
+Check `roadmap_exists` from init JSON. If false:
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
@@ -49,16 +47,10 @@ Current: No active project
 
 Then stop. Do not continue.
 
-**If `.planning/ROADMAP.md` does NOT exist:**
-
-Show an error:
-
-```
- ERROR: ROADMAP.md not found. Your project exists but has no roadmap.
- Run /gmsd:progress to diagnose the issue.
-```
-
-Then stop.
+Also read:
+- `.planning/state.json` — Current execution state
+- `.planning/config.json` — Project configuration
+- `.planning/ROADMAP.md` — Phase breakdown
 
 ### 2. Determine Insert Position
 
@@ -127,7 +119,24 @@ Present the new phase summary for confirmation:
 
 Iterate until the user approves.
 
-### 6. Update ROADMAP.md
+### 6. Insert Phase via gmsd-tools CLI
+
+**Delegate the phase insertion to gmsd-tools:**
+
+```bash
+RESULT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js phase insert "${after_phase}" "${description}")
+```
+
+The CLI handles:
+- Verifying target phase exists in ROADMAP.md
+- Calculating next decimal phase number (checking existing decimals on disk)
+- Generating slug from description
+- Creating the phase directory (`.planning/phases/{N.M}-{slug}/`)
+- Inserting the phase entry into ROADMAP.md after the target phase with (INSERTED) marker
+
+Extract from result: `phase_number`, `after_phase`, `name`, `slug`, `directory`.
+
+**If gmsd-tools is not available**, fall back to manual updates:
 
 Insert the new phase into `.planning/ROADMAP.md`:
 
@@ -165,7 +174,7 @@ Insert the new phase into `.planning/ROADMAP.md`:
 
 ### 7. Update Downstream Dependencies (if applicable)
 
-If the user indicated this phase should block subsequent phases:
+If gmsd-tools handled the insertion, dependency updates are already done. Otherwise, if the user indicated this phase should block subsequent phases:
 
 - Find all phases that previously depended on phase {N}
 - Update their "Depends On" to include phase {N.X} (or replace {N} with {N.X} depending on the dependency chain)
@@ -178,9 +187,9 @@ If the user indicated this phase should block subsequent phases:
  Phase {next}: Depends On changed from "{N}" to "{N.X}"
 ```
 
-### 8. Create Phase Directory
+### 8. Create Phase Directory (if not already created by gmsd-tools)
 
-Create the phase directory:
+If `gmsd-tools phase insert` was used, the directory is already created. Otherwise, create it:
 
 ```
 .planning/phases/{N.X}-{phase-name-slug}/

@@ -14,10 +14,11 @@
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync, statSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { homedir } from 'os';
 import { createInterface } from 'readline';
+import { createHash } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -94,6 +95,7 @@ ${colors.bright}What gets installed:${colors.reset}
   workflows/        Orchestrator workflow definitions
   templates/        Project and phase templates
   ui-design/        UI design adapters, templates, and references
+  references/       Verification patterns, checkpoint handling, and CLI references
 
 ${colors.bright}Default location:${colors.reset}
   ~/.claude/        Global installation (works across all projects)
@@ -229,6 +231,156 @@ function checkAgentTeams(configDir) {
   return false;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Local Patch Preservation
+// ─────────────────────────────────────────────────────────────────────────────
+
+function hashFile(filePath) {
+  try {
+    const content = readFileSync(filePath, 'utf8');
+    return createHash('sha256').update(content).digest('hex');
+  } catch {
+    return null;
+  }
+}
+
+function collectFilesRecursive(dir, baseDir = dir) {
+  const files = [];
+  if (!existsSync(dir)) return files;
+
+  const entries = readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFilesRecursive(fullPath, baseDir));
+    } else {
+      files.push(relative(baseDir, fullPath));
+    }
+  }
+  return files;
+}
+
+function generateFileManifest(configDir) {
+  const manifest = {};
+  const dirs = [
+    { base: join(configDir, 'commands', 'gmsd'), prefix: 'commands/gmsd' },
+    { base: join(configDir, 'get-more-shit-done', 'workflows'), prefix: 'get-more-shit-done/workflows' },
+    { base: join(configDir, 'get-more-shit-done', 'templates'), prefix: 'get-more-shit-done/templates' },
+    { base: join(configDir, 'get-more-shit-done', 'ui-design'), prefix: 'get-more-shit-done/ui-design' },
+    { base: join(configDir, 'get-more-shit-done', 'references'), prefix: 'get-more-shit-done/references' },
+  ];
+
+  for (const { base, prefix } of dirs) {
+    const files = collectFilesRecursive(base);
+    for (const file of files) {
+      const fullPath = join(base, file);
+      const hash = hashFile(fullPath);
+      if (hash) {
+        manifest[`${prefix}/${file}`] = hash;
+      }
+    }
+  }
+
+  // Agents
+  const agentsDir = join(configDir, 'agents');
+  if (existsSync(agentsDir)) {
+    for (const file of readdirSync(agentsDir)) {
+      if (file.startsWith('gmsd-')) {
+        const hash = hashFile(join(agentsDir, file));
+        if (hash) {
+          manifest[`agents/${file}`] = hash;
+        }
+      }
+    }
+  }
+
+  // Hooks
+  const hooksDir = join(configDir, 'hooks');
+  if (existsSync(hooksDir)) {
+    for (const file of readdirSync(hooksDir)) {
+      if (file.startsWith('gmsd-')) {
+        const hash = hashFile(join(hooksDir, file));
+        if (hash) {
+          manifest[`hooks/${file}`] = hash;
+        }
+      }
+    }
+  }
+
+  return manifest;
+}
+
+function detectLocalPatches(configDir) {
+  const manifestPath = join(configDir, 'get-more-shit-done', 'gmsd-file-manifest.json');
+  if (!existsSync(manifestPath)) return [];
+
+  let manifest;
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  } catch {
+    return [];
+  }
+
+  const modified = [];
+  for (const [relPath, originalHash] of Object.entries(manifest)) {
+    const fullPath = join(configDir, relPath);
+    if (!existsSync(fullPath)) continue; // File was deleted, not a patch
+
+    const currentHash = hashFile(fullPath);
+    if (currentHash && currentHash !== originalHash) {
+      modified.push({
+        relativePath: relPath,
+        fullPath,
+        originalHash,
+        currentHash
+      });
+    }
+  }
+
+  return modified;
+}
+
+function backupLocalPatches(configDir, modifiedFiles) {
+  if (modifiedFiles.length === 0) return null;
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupDir = join(configDir, 'gmsd-local-patches', timestamp);
+  mkdirSync(backupDir, { recursive: true });
+
+  const backupMeta = {
+    timestamp: new Date().toISOString(),
+    version_before: null,
+    files: []
+  };
+
+  // Read previous version
+  const versionPath = join(configDir, 'get-more-shit-done', 'VERSION');
+  if (existsSync(versionPath)) {
+    backupMeta.version_before = readFileSync(versionPath, 'utf8').trim();
+  }
+
+  for (const mod of modifiedFiles) {
+    // Preserve directory structure in backup
+    const destPath = join(backupDir, mod.relativePath);
+    mkdirSync(dirname(destPath), { recursive: true });
+    writeFileSync(destPath, readFileSync(mod.fullPath, 'utf8'));
+
+    backupMeta.files.push({
+      path: mod.relativePath,
+      original_hash: mod.originalHash,
+      modified_hash: mod.currentHash
+    });
+  }
+
+  writeFileSync(join(backupDir, 'backup-meta.json'), JSON.stringify(backupMeta, null, 2));
+
+  return {
+    backupDir,
+    count: modifiedFiles.length,
+    timestamp
+  };
+}
+
 // Main installation
 async function install() {
   showBanner();
@@ -252,6 +404,18 @@ async function install() {
   // Ensure base directory exists
   if (!isDryRun) {
     mkdirSync(configDir, { recursive: true });
+  }
+
+  // Detect and back up locally modified files before wiping
+  let patchBackup = null;
+  if (!isDryRun) {
+    const modifiedFiles = detectLocalPatches(configDir);
+    if (modifiedFiles.length > 0) {
+      patchBackup = backupLocalPatches(configDir, modifiedFiles);
+      log(`  Backed up ${patchBackup.count} locally modified file(s)`, 'yellow');
+      log(`  Backup: gmsd-local-patches/${patchBackup.timestamp}/`, 'dim');
+      console.log();
+    }
   }
 
   let totalCopied = 0;
@@ -390,7 +554,29 @@ async function install() {
   }
   console.log();
 
-  // 6. Install hooks
+  // 6. Install references
+  const referencesSrc = join(packageRoot, 'references');
+  const referencesDest = join(configDir, 'get-more-shit-done', 'references');
+  const referencesCount = countFiles(referencesSrc);
+
+  log(`${colors.bright}References${colors.reset} (${referencesCount} files)`, 'cyan');
+  if (existsSync(referencesSrc)) {
+    if (!isDryRun) {
+      removeDir(referencesDest);
+    }
+    const copied = copyDir(referencesSrc, referencesDest, { pathReplacements, dryRun: isDryRun });
+    totalCopied += copied;
+    if (!isDryRun) {
+      log(`  ✓ Installed to get-more-shit-done/references/`, 'green');
+    } else {
+      log(`  Would install to get-more-shit-done/references/`, 'dim');
+    }
+  } else {
+    log(`  - No reference files found`, 'dim');
+  }
+  console.log();
+
+  // 7. Install hooks (renumbered from 6)
   const hooksSrc = join(packageRoot, 'hooks');
   const hooksDest = join(configDir, 'hooks');
   const hookFiles = ['gmsd-task-completed.js', 'gmsd-teammate-idle.js', 'gmsd-file-tracker.js'];
@@ -434,15 +620,23 @@ async function install() {
   }
   console.log();
 
-  // 7. Write version file
+  // 8. Write version file and file manifest
   if (!isDryRun) {
     const versionDir = join(configDir, 'get-more-shit-done');
     mkdirSync(versionDir, { recursive: true });
     writeFileSync(join(versionDir, 'VERSION'), VERSION);
     log(`Version file written (${VERSION})`, 'green');
+
+    // Generate file manifest for future patch detection
+    const manifest = generateFileManifest(configDir);
+    writeFileSync(
+      join(versionDir, 'gmsd-file-manifest.json'),
+      JSON.stringify(manifest, null, 2)
+    );
+    log(`File manifest written (${Object.keys(manifest).length} files tracked)`, 'green');
   }
 
-  // 8. Apply preset if specified
+  // 9. Apply preset if specified
   if (presetValue && !isDryRun) {
     if (!validPresets.includes(presetValue)) {
       log(`\n⚠ Unknown preset: "${presetValue}"`, 'yellow');
@@ -474,7 +668,7 @@ async function install() {
     }
   }
 
-  // 9. Check Agent Teams setting
+  // 10. Check Agent Teams setting
   const agentTeamsEnabled = checkAgentTeams(configDir);
 
   // Summary
@@ -501,6 +695,14 @@ async function install() {
       "PostToolUse": [{ "hooks": [{ "type": "command", "command": "node ${pathPrefix}/hooks/gmsd-file-tracker.js" }] }]
     }
   }${colors.reset}`);
+
+    // Notify about backed-up patches
+    if (patchBackup) {
+      log(`\n${colors.bright}Local patches backed up:${colors.reset}`, 'yellow');
+      log(`  ${patchBackup.count} file(s) had local modifications that were preserved.`, 'dim');
+      log(`  Backup location: ${pathPrefix}/gmsd-local-patches/${patchBackup.timestamp}/`, 'dim');
+      log(`  To review and reapply: ${colors.cyan}/gmsd:reapply-patches${colors.reset}`, 'dim');
+    }
 
     log(`\nNext steps:`, 'bright');
     log(`  1. Open Claude Code in your project`, 'dim');

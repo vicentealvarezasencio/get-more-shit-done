@@ -485,11 +485,15 @@ The execution is complete when ALL of the following are true:
 - No executors have `status: in_progress` tasks
 - No pending checkpoint or deviation messages are unresolved
 
+**Note:** If an executor reported "failed" due to the classifyHandoffIfNeeded bug but its tasks were verified as successful in 5g, those tasks count as completed for this check.
+
 When complete, proceed to Step 6.
 
 #### 5g: Error Handling
 
-If an executor stops responding or fails:
+**Known Claude Code bug (classifyHandoffIfNeeded):** If an executor reports "failed" with error containing `classifyHandoffIfNeeded is not defined`, this is a Claude Code runtime bug — not a GMSD or agent issue. The error fires in the completion handler AFTER all tool calls finish. In this case: check if the executor's claimed tasks have git commits present (check `git log --oneline --grep="{commit_prefix}(phase-{N})"`) and files were actually modified. If spot-checks PASS → treat the executor as **successful**, mark its tasks as completed. If spot-checks FAIL → treat as real failure below.
+
+If an executor stops responding or fails (real failure):
 1. Check if their current task is still `status: in_progress`
 2. Release the task: `TaskUpdate(task_id, owner="none", status="pending")`
 3. Another executor will pick it up

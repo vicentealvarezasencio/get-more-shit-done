@@ -6,17 +6,17 @@ You are the GMSD phase remover. Your job is to safely remove a pending/future ph
 
 ## Instructions
 
-### 1. Read Project State
+### 1. Read Project State and Initialize
 
-Attempt to read the following files from the current working directory:
+Load phase operation context:
 
-- `.planning/state.json` — Current execution state
-- `.planning/config.json` — Project configuration
-- `.planning/ROADMAP.md` — Phase breakdown
+```bash
+INIT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js init phase-op "${target}")
+```
 
-**If `.planning/state.json` does NOT exist:**
+Extract: `phase_found`, `phase_dir`, `phase_number`, `commit_docs`, `roadmap_exists`.
 
-Show this message and stop:
+Check `roadmap_exists` from init JSON. If false:
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
@@ -45,16 +45,7 @@ Current: No active project
 
 Then stop. Do not continue.
 
-**If `.planning/ROADMAP.md` does NOT exist:**
-
-Show an error:
-
-```
- ERROR: ROADMAP.md not found. Your project exists but has no roadmap.
- Run /gmsd:progress to diagnose the issue.
-```
-
-Then stop.
+Also read STATE.md and ROADMAP.md content for parsing current position.
 
 ### 2. Determine Phase to Remove
 
@@ -179,6 +170,29 @@ Show the renumbering plan:
 - **yolo**: Proceed without showing the plan.
 
 ### 7. Execute Removal
+
+**Delegate the entire removal operation to gmsd-tools:**
+
+```bash
+RESULT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js phase remove "${target}")
+```
+
+If the phase has executed plans (SUMMARY.md files), gmsd-tools will error. Use `--force` only if the user confirms:
+
+```bash
+RESULT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js phase remove "${target}" --force)
+```
+
+The CLI handles:
+- Deleting the phase directory
+- Renumbering all subsequent directories (in reverse order to avoid conflicts)
+- Renaming all files inside renumbered directories (PLAN.md, SUMMARY.md, etc.)
+- Updating ROADMAP.md (removing section, renumbering all phase references, updating dependencies)
+- Updating STATE.md (decrementing phase count)
+
+Extract from result: `removed`, `directory_deleted`, `renamed_directories`, `renamed_files`, `roadmap_updated`, `state_updated`.
+
+**If gmsd-tools is not available**, fall back to manual updates:
 
 Perform the following updates in order:
 

@@ -69,6 +69,28 @@ Latest version:    {latest_version}
 {The command that will be run — see Step 4 for which command to use.}
 ```
 
+### Step 3.5: Clean Install Warning
+
+Before confirming the update, warn the user about what will be replaced:
+
+```
+Note: The installer performs a clean install of GMSD folders:
+- `commands/gmsd/` will be wiped and replaced
+- `get-more-shit-done/` will be wiped and replaced
+- `agents/gmsd-*` files will be replaced
+
+(Paths are relative to your install location: `~/.claude/` for global, `./.claude/` for local)
+
+Your custom files in other locations are preserved:
+- Custom commands not in `commands/gmsd/`
+- Custom agents not prefixed with `gmsd-`
+- Custom hooks
+- Your CLAUDE.md files
+
+If you've modified any GMSD files directly, they'll be automatically backed up
+to `gmsd-local-patches/` and can be reapplied with `/gmsd:reapply-patches` after the update.
+```
+
 ### Step 4: Confirm and Run Update
 
 **Read mode from config:**
@@ -135,6 +157,23 @@ Expected version:  {latest_version}
 - Check for permission issues (try with sudo for global installs)
 - File an issue: https://github.com/vicentealvarezasencio/get-more-shit-done/issues
 ```
+
+### Step 5.5: Check for Local Patches
+
+After the update completes, check if the installer detected and backed up any locally modified files.
+
+Check for `gmsd-local-patches/backup-meta.json` in the config directory:
+- Global: `~/.claude/gmsd-local-patches/backup-meta.json`
+- Local: `./.claude/gmsd-local-patches/backup-meta.json`
+
+**If patches found:**
+
+```
+Local patches were backed up before the update.
+Run /gmsd:reapply-patches to merge your modifications into the new version.
+```
+
+**If no patches:** Continue normally.
 
 ### Step 6: Update State (if project exists)
 

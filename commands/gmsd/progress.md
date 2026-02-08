@@ -4,18 +4,19 @@ You are the GMSD routing engine. This is the most important command in the syste
 
 ## Instructions
 
-### 1. Read Project State
+### 1. Load Progress Context
 
-Attempt to read the following files from the current working directory:
+**Load progress context (with file contents to avoid redundant reads):**
 
-- `.planning/state.json` — Current execution state
-- `.planning/config.json` — Project configuration
-- `.planning/ROADMAP.md` — Phase breakdown
-- `.planning/PROJECT.md` — Project definition
+```bash
+INIT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js init progress --include state,roadmap,project,config)
+```
 
-**If `.planning/state.json` does NOT exist:**
+Extract from init JSON: `project_exists`, `roadmap_exists`, `state_exists`, `phases`, `current_phase`, `next_phase`, `milestone_version`, `completed_count`, `phase_count`, `paused_at`.
 
-Show this message and stop:
+**File contents (from --include):** `state_content`, `roadmap_content`, `project_content`, `config_content`. These are null if files don't exist.
+
+If `project_exists` is false (no `.planning/` directory):
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
@@ -49,6 +50,20 @@ Current: No active project
 
 Then stop. Do not continue.
 
+If missing STATE.md: suggest `/gmsd:new-project`.
+
+**If ROADMAP.md missing but PROJECT.md exists:**
+
+This means a milestone was completed and archived. Route to between-milestones handling (all phases complete).
+
+If missing both ROADMAP.md and PROJECT.md: suggest `/gmsd:new-project`.
+
+Also read (if not already provided by init):
+- `.planning/state.json` — Current execution state
+- `.planning/config.json` — Project configuration
+- `.planning/ROADMAP.md` — Phase breakdown
+- `.planning/PROJECT.md` — Project definition
+
 ### 2. Display Project Overview
 
 Read state.json and config.json. Show:
@@ -79,9 +94,36 @@ If `state.json.active_team` is not null, show:
  to complete or run /gmsd:resume-work to continue.
 ```
 
+### 3.5. Analyze Roadmap via gmsd-tools
+
+**Get comprehensive roadmap analysis (replaces manual parsing):**
+
+```bash
+ROADMAP=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js roadmap analyze)
+```
+
+This returns structured JSON with:
+- All phases with disk status (complete/partial/planned/empty/no_directory)
+- Goal and dependencies per phase
+- Plan and summary counts per phase
+- Aggregated stats: total plans, summaries, progress percent
+- Current and next phase identification
+
+Use this instead of manually reading/parsing ROADMAP.md where possible.
+
+**For recent work context**, use `summary-extract` for efficient SUMMARY parsing:
+```bash
+node ~/.claude/get-more-shit-done/bin/gmsd-tools.js summary-extract <path> --fields one_liner
+```
+
+**For progress bar display:**
+```bash
+PROGRESS_BAR=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js progress bar --raw)
+```
+
 ### 4. Display Phase Progress Table
 
-Read ROADMAP.md and cross-reference with state.json to build a progress table. For each phase, determine its status from:
+Read ROADMAP.md (or use roadmap analyze output) and cross-reference with state.json to build a progress table. For each phase, determine its status from:
 - state.json `completed_phases` array (for done phases)
 - state.json `current_phase` and `phase_status` (for the active phase)
 - Check if `.planning/phases/{N}-{name}/` directory exists

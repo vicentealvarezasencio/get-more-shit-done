@@ -6,17 +6,15 @@ You are the GMSD phase builder. Your job is to gather information about a new ph
 
 ## Instructions
 
-### 1. Read Project State
+### 1. Read Project State and Initialize
 
-Attempt to read the following files from the current working directory:
+Load phase operation context:
 
-- `.planning/state.json` — Current execution state
-- `.planning/config.json` — Project configuration
-- `.planning/ROADMAP.md` — Phase breakdown
+```bash
+INIT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js init phase-op "0")
+```
 
-**If `.planning/state.json` does NOT exist:**
-
-Show this message and stop:
+Check `roadmap_exists` from init JSON. If false:
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
@@ -45,20 +43,14 @@ Current: No active project
 
 Then stop. Do not continue.
 
-**If `.planning/ROADMAP.md` does NOT exist:**
-
-Show an error:
-
-```
- ERROR: ROADMAP.md not found. Your project exists but has no roadmap.
- Run /gmsd:progress to diagnose the issue.
-```
-
-Then stop.
+Also read:
+- `.planning/state.json` — Current execution state
+- `.planning/config.json` — Project configuration
+- `.planning/ROADMAP.md` — Phase breakdown
 
 ### 2. Determine Next Phase Number
 
-Parse `.planning/ROADMAP.md` to find the highest existing phase number.
+The init context provides the current phase state. Parse `.planning/ROADMAP.md` to find the highest existing phase number.
 
 - Scan the Phase List table for all existing phase numbers (including decimal phases like 3.1, 3.2)
 - The new phase number is the next whole integer after the highest whole-number phase
@@ -107,7 +99,24 @@ Present the new phase summary for confirmation:
 
 Iterate until the user approves.
 
-### 5. Update ROADMAP.md
+### 5. Add Phase via gmsd-tools CLI
+
+**Delegate the phase addition to gmsd-tools:**
+
+```bash
+RESULT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js phase add "${description}")
+```
+
+The CLI handles:
+- Finding the highest existing integer phase number
+- Calculating next phase number (max + 1)
+- Generating slug from description
+- Creating the phase directory (`.planning/phases/{NN}-{slug}/`)
+- Inserting the phase entry into ROADMAP.md with Goal, Depends on, and Plans sections
+
+Extract from result: `phase_number`, `padded`, `name`, `slug`, `directory`.
+
+**If gmsd-tools is not available**, fall back to manual updates:
 
 Append the new phase to `.planning/ROADMAP.md`:
 
@@ -138,9 +147,9 @@ Append the new phase to `.planning/ROADMAP.md`:
 | {N}     | pending | —                   | —                   | —        |
 ```
 
-### 6. Create Phase Directory
+### 6. Create Phase Directory (if not already created by gmsd-tools)
 
-Create the phase directory:
+If `gmsd-tools phase add` was used, the directory is already created. Otherwise, create it:
 
 ```
 .planning/phases/{N}-{phase-name-slug}/

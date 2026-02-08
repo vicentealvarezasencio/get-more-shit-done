@@ -83,6 +83,8 @@ Before finishing:
 3. Check for: syntax errors, missing imports, unused variables, broken references.
 4. Confirm you haven't introduced unrelated changes.
 
+**Known Claude Code bug (classifyHandoffIfNeeded):** If execution reports "failed" with error containing `classifyHandoffIfNeeded is not defined`, this is a Claude Code runtime bug — not a GMSD or agent issue. The error fires in the completion handler AFTER all tool calls finish. In this case: check if files were actually modified and git log shows commits. If spot-checks PASS (files changed, commits present) → treat as **successful** and continue to Step 3. If spot-checks FAIL → treat as real failure.
+
 ### Step 3: Commit (unless --no-commit)
 
 **If `skip_commit` is true:**

@@ -4,7 +4,36 @@ You are the GMSD project initializer. Your job is to gather project information 
 
 **This is the entry point for all new GMSD projects.**
 
+**Usage:** `/gmsd:new-project [--auto]`
+
+**Flags:**
+- `--auto` — Automatic mode. After config questions, runs research, requirements, and roadmap without further interaction. Expects an idea document via `@` reference (e.g., `/gmsd:new-project --auto @prd.md`).
+
 ## Instructions
+
+### 0. Auto Mode Detection
+
+Check if `--auto` flag is present in the arguments.
+
+**If auto mode:**
+- Skip deep questioning (Step 2) — extract context from provided `@` document instead
+- Config questions still required (Step 5)
+- After config: run Steps 6-9 automatically with smart defaults:
+  - Research: Always yes
+  - Requirements: Include all table stakes + features from provided document
+  - Requirements approval: Auto-approve
+  - Roadmap approval: Auto-approve
+
+**Document requirement:**
+Auto mode requires an idea document via `@` reference. If no document is provided, show this error and stop:
+
+```
+Error: --auto requires an idea document via @ reference.
+
+Usage: /gmsd:new-project --auto @your-idea.md
+
+The document should describe what you want to build.
+```
 
 ### 1. Check for Existing Project
 
@@ -44,6 +73,8 @@ Current: Phase {N} — {name} | Status: {status} | Mode: {mode}
 If they choose overwrite, delete the `.planning/` directory and continue.
 
 ### 2. Gather Project Information
+
+**If auto mode:** Skip deep questioning. Extract project context (name, vision, problem, users, platform, requirements, constraints) from the provided `@` document and proceed directly to Step 2.5. If the document is too vague to extract these details, fall back to asking the user for the missing pieces.
 
 Have a conversation with the user to collect project details. Ask these questions in natural groups. Do NOT dump all questions at once.
 
@@ -222,6 +253,8 @@ If mode is `balanced` or `yolo`, skip this step.
 
 ### 6. Run Research Team
 
+**If auto mode:** Default to running research (always yes). Skip asking the user whether to research.
+
 Now run a parallel research team to explore the technical landscape for this project.
 
 **Create the research team:**
@@ -338,6 +371,8 @@ Display the synthesized research to the user. Show:
 
 ### 8. Define Milestones
 
+**If auto mode:** Auto-generate milestones from the provided document and research findings. Include all table stakes features plus features explicitly mentioned in the document. Auto-approve without asking the user. Skip the "Does this milestone structure work for you?" gate.
+
 Based on research findings and user requirements, suggest milestones:
 
 ```
@@ -362,6 +397,8 @@ Iterate until the user approves.
 Update PROJECT.md with finalized milestones.
 
 ### 9. Create Roadmap
+
+**If auto mode:** Auto-approve the roadmap without asking the user. Skip the iteration/feedback loop and commit directly.
 
 For the first milestone, create a phase breakdown. Create `.planning/ROADMAP.md` using the template.
 

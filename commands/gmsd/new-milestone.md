@@ -262,7 +262,43 @@ If `.planning/ROADMAP.md` exists from the previous milestone, rename or archive 
 - If `.planning/archive/v{prev_version}/` exists, verify ROADMAP.md is already archived there
 - Clear the current ROADMAP.md (it will be recreated when phases are defined)
 
-### 9. Reference Previous Milestone Artifacts
+### 9. Research Decision Persistence
+
+Ask the user whether to run research for the new milestone's features before defining requirements:
+
+```
+Research the domain ecosystem for new features before defining requirements?
+
+Options:
+  1. Research first (Recommended) — Discover patterns, features, architecture for NEW capabilities
+  2. Skip research — Go straight to requirements
+```
+
+**Persist the user's choice to `.planning/config.json`** so that future commands (e.g., `/gmsd:plan-phase`) honor it:
+
+- If "Research first": set `workflow.research` to `true` in config.json
+- If "Skip research": set `workflow.research` to `false` in config.json
+
+Also persist the decision under the `research_decisions` key in config.json for milestone-level tracking:
+
+```json
+{
+  "research_decisions": {
+    "milestone_{new_number}": {
+      "research_enabled": true,
+      "decided_at": "{ISO timestamp}",
+      "reason": "user_choice"
+    }
+  }
+}
+```
+
+This ensures:
+- The research preference carries forward into phase planning for this milestone
+- Historical research decisions are preserved across milestones
+- Commands like `/gmsd:plan-phase` can check `workflow.research` to know whether to spawn researchers
+
+### 10. Reference Previous Milestone Artifacts
 
 Check for artifacts from the previous milestone that may be useful:
 
@@ -287,7 +323,7 @@ Check for artifacts from the previous milestone that may be useful:
  Location: .planning/CARRIED-CONTEXT.md
 ```
 
-### 10. Update STATE.md
+### 11. Update STATE.md
 
 Update `.planning/STATE.md` to reflect the new milestone state:
 
@@ -310,7 +346,7 @@ Update `.planning/STATE.md` to reflect the new milestone state:
 | {new}     | {v}     | {new_name}        | active    |
 ```
 
-### 11. Display Confirmation
+### 12. Display Confirmation
 
 Show the result:
 
@@ -331,7 +367,7 @@ Show the result:
    {list of previous milestone artifacts found, or "None"}
 ```
 
-### 12. What's Next
+### 13. What's Next
 
 Determine the recommendation based on context:
 

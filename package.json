@@ -1,11 +1,12 @@
 {
   "name": "get-more-shit-done-cc",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A team-based project orchestration system for Claude Code. Research, design, plan, execute, verify — with coordinated agent teams.",
   "type": "module",
   "bin": {
     "get-more-shit-done-cc": "bin/install.js",
-    "gmsd-state": "bin/gmsd-state.js"
+    "gmsd-state": "bin/gmsd-state.js",
+    "gmsd-tools": "bin/gmsd-tools.js"
   },
   "files": [
     "bin/",
@@ -15,6 +16,7 @@
     "workflows/",
     "templates/",
     "ui-design/",
+    "references/",
     "hooks/",
     "README.md",
     "LICENSE"
