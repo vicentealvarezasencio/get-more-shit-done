@@ -1,0 +1,23 @@
+{
+  "project_name": "{{PROJECT_NAME}}",
+  "version": "{{VERSION}}",
+  "mode": "guided",
+  "teams": {
+    "default_executors": 3,
+    "max_executors": 5,
+    "default_researchers": 3,
+    "default_debuggers": 2,
+    "scale_up_threshold": 5
+  },
+  "git": {
+    "auto_commit": true,
+    "commit_per": "task",
+    "commit_prefix": "gmsd"
+  },
+  "model_overrides": {},
+  "design": {
+    "enabled": true,
+    "auto_detect": true,
+    "default_adapter": "v0"
+  }
+}

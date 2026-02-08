@@ -1,0 +1,13 @@
+{
+  "project": "{{PROJECT_NAME}}",
+  "version": "{{VERSION}}",
+  "current_milestone": 1,
+  "current_phase": null,
+  "phase_status": null,
+  "mode": "guided",
+  "active_team": null,
+  "completed_phases": [],
+  "last_command": null,
+  "last_updated": null,
+  "history": []
+}
