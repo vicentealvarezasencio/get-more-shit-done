@@ -3431,6 +3431,7 @@ function findPhaseInternal(cwd, phase) {
     const hasResearch = phaseFiles.some(f => f.endsWith('-RESEARCH.md') || f === 'RESEARCH.md');
     const hasContext = phaseFiles.some(f => f.endsWith('-CONTEXT.md') || f === 'CONTEXT.md');
     const hasVerification = phaseFiles.some(f => f.endsWith('-VERIFICATION.md') || f === 'VERIFICATION.md');
+    const hasUat = phaseFiles.some(f => f.endsWith('-UAT.md') || f === 'UAT.md');
 
     // Determine incomplete plans (plans without matching summaries)
     const completedPlanIds = new Set(
@@ -3453,6 +3454,7 @@ function findPhaseInternal(cwd, phase) {
       has_research: hasResearch,
       has_context: hasContext,
       has_verification: hasVerification,
+      has_uat: hasUat,
     };
   } catch {
     return null;
@@ -3829,6 +3831,7 @@ function cmdInitVerifyWork(cwd, phase, raw) {
 
     // Existing artifacts
     has_verification: phaseInfo?.has_verification || false,
+    has_uat: phaseInfo?.has_uat || false,
   };
 
   output(result, raw);

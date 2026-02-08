@@ -1,495 +1,615 @@
-# Workflow: Verification
+<purpose>
+Validate built features through conversational testing with persistent state. Creates UAT.md that tracks test progress, survives /clear, and feeds gaps into /gmsd:plan-phase --gaps.
 
-**Slash Command:** `/gmsd:verify-work {N}`
-**Role:** Team Lead
-**Produces:** `.planning/phases/{N}-{name}/VERIFICATION.md`
+User tests, Claude records. One test at a time. Plain text responses.
+</purpose>
 
+<philosophy>
+**Show expected, ask if reality matches.**
+
+Claude presents what SHOULD happen. User confirms or describes what's different.
+- "yes" / "y" / "next" / empty → pass
+- Anything else → logged as issue, severity inferred
+
+No Pass/Fail buttons. No severity questions. Just: "Here's what should happen. Does it?"
+</philosophy>
+
+<template>
+@templates/UAT.md
+</template>
+
+<process>
+
+<step name="initialize" priority="first">
+If $ARGUMENTS contains a phase number, load context:
+
+```bash
+INIT=$(node ~/.claude/get-more-shit-done/bin/gmsd-tools.js init verify-work "${PHASE_ARG}")
+```
+
+Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `has_uat`.
+</step>
+
+<step name="check_active_session">
+**First: Check for active UAT sessions**
+
+```bash
+find .planning/phases -name "*-UAT.md" -type f 2>/dev/null | head -5
+```
+
+**If active sessions exist AND no $ARGUMENTS provided:**
+
+Read each file's frontmatter (status, phase) and Current Test section.
+
+Display inline:
+
+```
+## Active UAT Sessions
+
+| # | Phase | Status | Current Test | Progress |
+|---|-------|--------|--------------|----------|
+| 1 | 04-comments | testing | 3. Reply to Comment | 2/6 |
+| 2 | 05-auth | testing | 1. Login Form | 0/4 |
+
+Reply with a number to resume, or provide a phase number to start new.
+```
+
+Wait for user response.
+
+- If user replies with number (1, 2) → Load that file, go to `resume_from_file`
+- If user replies with phase number → Treat as new session, go to `create_uat_file`
+
+**If active sessions exist AND $ARGUMENTS provided:**
+
+Check if session exists for that phase. If yes, offer to resume or restart.
+If no, continue to `create_uat_file`.
+
+**If no active sessions AND no $ARGUMENTS:**
+
+```
+No active UAT sessions.
+
+Provide a phase number to start testing (e.g., /gmsd:verify-work 4)
+```
+
+**If no active sessions AND $ARGUMENTS provided:**
+
+Continue to `create_uat_file`.
+</step>
+
+<step name="find_summaries">
+**Find what to test:**
+
+Use `phase_dir` from init (or run init if not already done).
+
+```bash
+ls "$phase_dir"/*-SUMMARY.md 2>/dev/null
+```
+
+Read each SUMMARY.md to extract testable deliverables.
+</step>
+
+<step name="extract_tests">
+**Extract testable deliverables from SUMMARY.md:**
+
+Parse for:
+1. **Accomplishments** - Features/functionality added
+2. **User-facing changes** - UI, workflows, interactions
+
+Focus on USER-OBSERVABLE outcomes, not implementation details.
+
+For each deliverable, create a test:
+- name: Brief test name
+- expected: What the user should see/experience (specific, observable)
+
+Examples:
+- Accomplishment: "Added comment threading with infinite nesting"
+  → Test: "Reply to a Comment"
+  → Expected: "Clicking Reply opens inline composer below comment. Submitting shows reply nested under parent with visual indentation."
+
+Skip internal/non-observable items (refactors, type changes, etc.).
+</step>
+
+<step name="create_uat_file">
+**Create UAT file with all tests:**
+
+```bash
+mkdir -p "$PHASE_DIR"
+```
+
+Build test list from extracted deliverables.
+
+Create file:
+
+```markdown
+---
+status: testing
+phase: XX-name
+source: [list of SUMMARY.md files]
+started: [ISO timestamp]
+updated: [ISO timestamp]
 ---
 
-## Overview
+## Current Test
+<!-- OVERWRITE each test - shows where we are -->
 
-Goal-backward verification of a completed phase. A single verifier subagent checks whether the phase GOAL was achieved (not just whether tasks were completed). The verifier inspects the codebase, runs tests, checks design conformance, and produces a structured report. If gaps are found, the lead creates gap tasks and routes to debug.
+number: 1
+name: [first test name]
+expected: |
+  [what user should observe]
+awaiting: user response
 
-This is a single-agent workflow -- no team needed.
+## Tests
 
----
+### 1. [Test Name]
+expected: [observable behavior]
+result: [pending]
 
-## Prerequisites
+### 2. [Test Name]
+expected: [observable behavior]
+result: [pending]
 
-Before starting, verify these conditions:
+...
 
-```
-1. Phase {N} has been executed
-   Read state.json
-   IF phase_status not in ["executed", "verifying"]:
-     WARN: "Phase {N} status is '{phase_status}'. Expected 'executed'."
-     IF phase_status == "planned" or "designed":
-       STOP. "Phase not yet executed. Run /gmsd:execute-phase {N} first."
-     IF phase_status == "verified":
-       Ask: "Phase already verified. Re-verify? (yes/no)"
-       IF no: STOP.
+## Summary
 
-2. PLAN.md exists with verification spec
-   path = .planning/phases/{N}-{name}/PLAN.md
-   IF NOT exists: STOP. "No plan found."
-   Parse verification spec section
-   IF verification spec is empty: WARN. "No verification spec in plan. Verification will be best-effort."
+total: [N]
+passed: 0
+issues: 0
+pending: [N]
+skipped: 0
 
-3. Read all context
-   plan = .planning/phases/{N}-{name}/PLAN.md
-   roadmap = .planning/ROADMAP.md
-   project = .planning/PROJECT.md
-   config = .planning/config.json
+## Gaps
 
-   IF exists: context = .planning/phases/{N}-{name}/CONTEXT.md
-   IF exists: research = .planning/phases/{N}-{name}/RESEARCH.md
-   IF exists: design_spec = .planning/phases/{N}-{name}/design/UI-SPEC.md
+[none yet]
 ```
 
----
+Write to `.planning/phases/XX-name/{phase}-UAT.md`
 
-## State Transitions
+Proceed to `present_test`.
+</step>
 
-```
-executed --> verifying --> verified (or gaps_found)
-```
+<step name="present_test">
+**Present current test to user:**
 
----
+Read Current Test section from UAT file.
 
-## Step 1: Prepare Verification Context
-
-**Actor:** Lead
+Display using checkpoint box format:
 
 ```
-Extract from PLAN.md:
-  phase_goal = Phase Goal section
-  verification_criteria = Verification Spec -> Goal Decomposition
-  verification_steps = Verification Spec -> Verification Steps
-  automated_checks = Verification Spec -> Automated Checks
-  tasks = all tasks with acceptance criteria
+╔══════════════════════════════════════════════════════════════╗
+║  CHECKPOINT: Verification Required                           ║
+╚══════════════════════════════════════════════════════════════╝
 
-Extract from ROADMAP.md:
-  phase_scope = Phase {N} scope
+**Test {number}: {name}**
 
-Determine what to verify:
-  has_design = .planning/phases/{N}-{name}/design/UI-SPEC.md exists
-  has_tests = check if test files were created/modified (from task file lists)
-  has_api = check if API routes were created (from task file lists)
+{expected}
+
+──────────────────────────────────────────────────────────────
+→ Type "pass" or describe what's wrong
+──────────────────────────────────────────────────────────────
 ```
 
----
+Wait for user response (plain text, no AskUserQuestion).
+</step>
 
-## Step 1.5: Automated Test Suite
+<step name="process_response">
+**Process user response and update file:**
 
-**Actor:** Lead
+**If response indicates pass:**
+- Empty response, "yes", "y", "ok", "pass", "next", "approved"
 
-Before spawning the verifier, run the project's automated tests using the test runner workflow:
-
+Update Tests section:
 ```
-// Run the full test suite (see workflows/test-runner.md)
-test_result = TestRunner(flag="--full")
-
-// Record results for the verifier
-IF test_result.status == "PASS":
-  test_context = "All automated tests passing ({test_result.passed} tests passed in {test_result.duration}s)"
-  test_section = "## Automated Tests\n\nStatus: PASS\nFramework: {test_result.framework}\nPassed: {test_result.passed} | Failed: 0 | Skipped: {test_result.skipped}\nDuration: {test_result.duration}s"
-
-ELSE IF test_result.status == "FAIL":
-  test_context = "AUTOMATED TESTS FAILING: {test_result.failed} tests failed. Failing tests: {test_result.failed_tests}. The verifier should check if these failures are related to phase {N} work."
-  test_section = "## Automated Tests\n\nStatus: FAIL\nFramework: {test_result.framework}\nPassed: {test_result.passed} | Failed: {test_result.failed} | Skipped: {test_result.skipped}\nDuration: {test_result.duration}s\n\nFailing tests:\n{for each test in test_result.failed_tests: - {test}\n}"
-
-ELSE IF test_result.status == "SKIP":
-  test_context = "No automated tests detected. The verifier should note this as a gap."
-  test_section = "## Automated Tests\n\nStatus: SKIP\nReason: {test_result.note}"
-
-Log: "Test suite: {test_result.status} ({test_result.framework}). {test_result.passed} passed, {test_result.failed} failed."
+### {N}. {name}
+expected: {expected}
+result: pass
 ```
 
----
+**If response indicates skip:**
+- "skip", "can't test", "n/a"
 
-## Step 2: Spawn Verifier Subagent
-
-**Actor:** Lead
-
-### 2a. Check Model Overrides
-
+Update Tests section:
 ```
-Read .planning/config.json
-IF config.model_overrides["verifier"] exists:
-  verifier_model = config.model_overrides["verifier"]
-ELSE:
-  verifier_model = default
+### {N}. {name}
+expected: {expected}
+result: skipped
+reason: [user's reason if provided]
 ```
 
-### 2b. Update State
+**If response is anything else:**
+- Treat as issue description
 
+Infer severity from description:
+- Contains: crash, error, exception, fails, broken, unusable → blocker
+- Contains: doesn't work, wrong, missing, can't → major
+- Contains: slow, weird, off, minor, small → minor
+- Contains: color, font, spacing, alignment, visual → cosmetic
+- Default if unclear: major
+
+Update Tests section:
 ```
+### {N}. {name}
+expected: {expected}
+result: issue
+reported: "{verbatim user response}"
+severity: {inferred}
+```
+
+Append to Gaps section (structured YAML for plan-phase --gaps):
+```yaml
+- truth: "{expected behavior from test}"
+  status: failed
+  reason: "User reported: {verbatim user response}"
+  severity: {inferred}
+  test: {N}
+  artifacts: []  # Filled by diagnosis
+  missing: []    # Filled by diagnosis
+```
+
+**After any response:**
+
+Update Summary counts.
+Update frontmatter.updated timestamp.
+
+If more tests remain → Update Current Test, go to `present_test`
+If no more tests → Go to `complete_session`
+</step>
+
+<step name="resume_from_file">
+**Resume testing from UAT file:**
+
+Read the full UAT file.
+
+Find first test with `result: [pending]`.
+
+Announce:
+```
+Resuming: Phase {phase} UAT
+Progress: {passed + issues + skipped}/{total}
+Issues found so far: {issues count}
+
+Continuing from Test {N}...
+```
+
+Update Current Test section with the pending test.
+Proceed to `present_test`.
+</step>
+
+<step name="complete_session">
+**Complete testing and commit:**
+
+Update frontmatter:
+- status: complete
+- updated: [now]
+
+Clear Current Test section:
+```
+## Current Test
+
+[testing complete]
+```
+
 Update state.json:
-  phase_status: "verifying"
-  last_command: "/gmsd:verify-work"
-  last_updated: "{ISO timestamp}"
+- phase_status: "tested"
+- last_command: "/gmsd:verify-work"
+- last_updated: "{ISO timestamp}"
+
+Commit the UAT file:
+```bash
+node ~/.claude/get-more-shit-done/bin/gmsd-tools.js commit "test({phase}): complete UAT - {passed} passed, {issues} issues" --files ".planning/phases/XX-name/{phase}-UAT.md"
 ```
 
-### 2c. Spawn Verifier
+Present summary:
+```
+## UAT Complete: Phase {phase}
+
+| Result | Count |
+|--------|-------|
+| Passed | {N}   |
+| Issues | {N}   |
+| Skipped| {N}   |
+
+[If issues > 0:]
+### Issues Found
+
+[List from Issues section]
+```
+
+**If issues > 0:** Proceed to `diagnose_issues`
+
+**If issues == 0:**
+```
+All tests passed. Ready to continue.
+
+- `/gmsd:plan-phase {next}` — Plan next phase
+- `/gmsd:execute-phase {next}` — Execute next phase
+```
+</step>
+
+<step name="diagnose_issues">
+**Diagnose root causes before planning fixes:**
+
+```
+---
+
+{N} issues found. Diagnosing root causes...
+
+Spawning parallel debug agents to investigate each issue.
+```
+
+- Load diagnose-issues workflow
+- Follow @workflows/diagnose-issues.md
+- Spawn parallel debug agents for each issue
+- Collect root causes
+- Update UAT.md with root causes
+- Proceed to `plan_gap_closure`
+
+Diagnosis runs automatically - no user prompt. Parallel agents investigate simultaneously, so overhead is minimal and fixes are more accurate.
+</step>
+
+<step name="plan_gap_closure">
+**Auto-plan fixes from diagnosed gaps:**
+
+Display:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GMSD ► PLANNING FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning planner for gap closure...
+```
+
+Spawn gsd-planner in --gaps mode:
 
 ```
 Task(
-  subagent_type="general-purpose",
-  prompt="You are a GMSD Verifier. Your job is to verify whether the phase
-  GOAL was achieved -- not just whether tasks were completed. You use
-  goal-backward analysis: start from the desired outcome and check if
-  reality matches.
+  prompt="""
+<planning_context>
 
-  PHASE TO VERIFY:
-  - Phase: {N} -- {phase_name}
-  - Phase goal: {phase_goal}
-  - Phase scope: {phase_scope}
+**Phase:** {phase_number}
+**Mode:** gap_closure
 
-  INPUT FILES (read these first):
-  - .planning/phases/{N}-{name}/PLAN.md -- task list, verification spec
-  - .planning/ROADMAP.md -- phase goals
-  - .planning/PROJECT.md -- project requirements
-  {IF has_design:}
-  - .planning/phases/{N}-{name}/design/UI-SPEC.md -- design system hub
-  - .planning/phases/{N}-{name}/design/design-tokens.json -- design tokens
-  - All screen specs in .planning/phases/{N}-{name}/design/screens/
-  {ENDIF}
-  {IF context exists:}
-  - .planning/phases/{N}-{name}/CONTEXT.md -- user decisions
-  {ENDIF}
+**UAT with diagnoses:**
+@.planning/phases/{phase_dir}/{phase}-UAT.md
 
-  AUTOMATED TEST RESULTS (from Step 1.5):
-  {test_context}
-  Include these results in VERIFICATION.md under an 'Automated Tests' section.
-  If tests failed, check whether the failures are related to phase {N} work
-  or pre-existing issues.
+**Project State:**
+@.planning/STATE.md
 
-  VERIFICATION PROTOCOL:
+**Roadmap:**
+@.planning/ROADMAP.md
 
-  ==============================================================
-  A. GOAL ACHIEVEMENT (Primary -- from PLAN.md verification spec)
-  ==============================================================
+</planning_context>
 
-  For each criterion in the verification spec:
-
-  {for each criterion in verification_criteria:}
-  Criterion {num}: {criterion}
-  - Locate the relevant code
-  - Check if it meets the stated criterion
-  - Rate: PASS / FAIL / PARTIAL
-  - Provide evidence: file path, line numbers, test output, or observation
-  {endfor}
-
-  Verification steps to execute:
-  {for each step in verification_steps:}
-  - {step}
-  {endfor}
-
-  Automated checks to run:
-  ```
-  {automated_checks}
-  ```
-  Run these commands and capture output. Report results.
-
-  ==============================================================
-  B. CODE QUALITY
-  ==============================================================
-
-  Scan all files modified/created during this phase:
-  - No obvious security vulnerabilities (SQL injection, XSS, exposed secrets)
-  - Follows existing code conventions (naming, structure, imports)
-  - No hardcoded values that should be configurable
-  - Error handling present for external calls and user input
-  - No TODO/FIXME/HACK comments without task references
-  - Imports are correct and used (no unused imports)
-  - No duplicate code that should be shared
-
-  {IF has_design:}
-  ==============================================================
-  C. UI CONFORMANCE (Only if design specs exist)
-  ==============================================================
-
-  For each screen spec in .planning/phases/{N}-{name}/design/screens/:
-  - Does the implemented screen match the wireframe layout?
-  - Are design tokens used (not hardcoded colors, fonts, spacing)?
-  - Are all states implemented (default, loading, error, empty, success)?
-  - Is responsive behavior implemented per spec?
-  - Accessibility basics:
-    - Interactive elements have labels?
-    - Focus order is logical?
-    - Color contrast meets WCAG AA?
-    - Screen reader landmarks present?
-    - Keyboard navigation works?
-  - Component usage matches COMPONENTS.md?
-  {ENDIF}
-
-  ==============================================================
-  D. INTEGRATION
-  ==============================================================
-
-  - New code integrates with existing codebase (no broken imports)
-  - Data flows correctly between components/modules
-  - API contracts match between frontend and backend (if both exist)
-  - Environment variables documented (if new ones added)
-  - Dependencies added to package.json/requirements.txt/etc.
-
-  ==============================================================
-  E. TASK-LEVEL CHECK (Secondary)
-  ==============================================================
-
-  For each task in PLAN.md:
-  - Were all acceptance criteria met?
-  - Were all listed files created/modified?
-  - Is there a commit for this task?
-
-  ==============================================================
-  OUTPUT
-  ==============================================================
-
-  Write VERIFICATION.md to .planning/phases/{N}-{name}/VERIFICATION.md
-
-  Use this structure:
-
-  # Verification Report -- Phase {N}: {phase_name}
-
-  **Verifier:** {your ID}
-  **Date:** {date}
-  **Phase Goal:** {phase_goal}
-
-  ## Verification Method
-  {describe how you verified -- code review, test execution, etc.}
-
-  ## Results
-
-  | # | Criterion | Status | Evidence |
-  |---|-----------|--------|----------|
-  | 1 | {criterion} | PASS/FAIL/PARTIAL | {file:line or observation} |
-  ...
-
-  ### Summary
-  | Total | Passed | Failed | Partial |
-  |-------|--------|--------|---------|
-  | {N}   | {N}    | {N}    | {N}     |
-
-  ## Code Quality Assessment
-  {findings from section B}
-
-  {IF has_design:}
-  ## UI Conformance
-  {findings from section C}
-  {ENDIF}
-
-  ## Integration Assessment
-  {findings from section D}
-
-  ## Task Completion
-  | Task | Status | Notes |
-  |------|--------|-------|
-  | T-01 | Done/Partial/Missing | {notes} |
-  ...
-
-  ## Gaps Found
-
-  ### Gap 1 -- {title}
-  | Field | Value |
-  |-------|-------|
-  | Severity | critical/major/minor |
-  | Criterion | {which criterion failed} |
-  | Description | {detailed description of what is wrong} |
-  | Root Cause | {your assessment of why it happened} |
-  | Suggested Fix | {how to fix it} |
-  | Files Affected | {list files} |
-
-  {Repeat for each gap. If no gaps: 'No gaps found. All criteria passed.'}
-
-  ## Gap Tasks (for critical and major gaps only)
-
-  | Task # | Gap # | Description | Complexity | Files |
-  |--------|-------|-------------|------------|-------|
-  | G-01   | 1     | {desc}      | {complexity} | {files} |
-
-  ## Recommendation
-
-  **Recommendation:** PROCEED / FIX_GAPS / REPLAN
-
-  **Rationale:** {why this recommendation}
-
-  DECISION RULES:
-  - PROCEED: All criteria PASS. No critical or major gaps.
-  - FIX_GAPS: Some criteria FAIL or PARTIAL. Gaps are fixable.
-  - REPLAN: Fundamental issues. Phase goal cannot be met with fixes alone.
-  "
+<downstream_consumer>
+Output consumed by /gmsd:execute-phase
+Plans must be executable prompts.
+</downstream_consumer>
+""",
+  subagent_type="gsd-planner",
+  model="{planner_model}",
+  description="Plan gap fixes for Phase {phase}"
 )
 ```
 
----
+On return:
+- **PLANNING COMPLETE:** Proceed to `verify_gap_plans`
+- **PLANNING INCONCLUSIVE:** Report and offer manual intervention
+</step>
 
-## Step 3: Process Verification Results
+<step name="verify_gap_plans">
+**Verify fix plans with checker:**
 
-**Actor:** Lead
-
-### 3a. Read Verification Report
-
+Display:
 ```
-WAIT for verifier Task to complete
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GMSD ► VERIFYING FIX PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Read .planning/phases/{N}-{name}/VERIFICATION.md
-
-Parse:
-  recommendation = PROCEED / FIX_GAPS / REPLAN
-  total_criteria = count
-  passed = count
-  failed = count
-  partial = count
-  gaps = list of gaps with severity
-  gap_tasks = list of proposed gap tasks
+◆ Spawning plan checker...
 ```
 
-### 3b. Handle Recommendation
+Initialize: `iteration_count = 1`
+
+Spawn gsd-plan-checker:
 
 ```
-CASE recommendation == "PROCEED":
+Task(
+  prompt="""
+<verification_context>
 
-  Update state.json:
-    phase_status: "verified"
-    history: [..., { "command": "/gmsd:verify-work {N}", "timestamp": "{ISO}",
-                     "result": "Verified: {passed}/{total_criteria} criteria passed. PROCEED." }]
+**Phase:** {phase_number}
+**Phase Goal:** Close diagnosed gaps from UAT
 
-  Lead to User: "Phase {N} ({phase_name}) VERIFIED!
+**Plans to verify:**
+@.planning/phases/{phase_dir}/*-PLAN.md
 
-    All verification criteria passed.
-    {passed}/{total_criteria} criteria met.
+</verification_context>
 
-    Verification report: .planning/phases/{N}-{name}/VERIFICATION.md
-
-  ---
-  ## What's Next
-
-  Current: Phase {N} -- {phase_name} | Status: verified | Mode: {mode}
-
-  **Recommended next step:**
-  {IF next_phase exists:}
-  --> /gmsd:discuss-phase {next_phase} -- Start the next phase
-  {ELSE:}
-  --> /gmsd:milestone -- All phases complete! Archive and ship.
-  {ENDIF}
-
-  **Other options:**
-  - /gmsd:verify-work {N} -- Re-verify
-  - /gmsd:progress -- View full project status"
-
-
-CASE recommendation == "FIX_GAPS":
-
-  critical_gaps = filter gaps where severity == "critical"
-  major_gaps = filter gaps where severity == "major"
-  minor_gaps = filter gaps where severity == "minor"
-
-  Update state.json:
-    phase_status: "gaps_found"
-
-  Lead to User: "Phase {N} ({phase_name}) verification found gaps:
-
-    {passed}/{total_criteria} criteria passed
-    {failed} failed, {partial} partial
-
-    Gaps found:
-    {for each gap:}
-    - [{gap.severity}] {gap.title}: {gap.description}
-    {endfor}
-
-    Proposed gap tasks: {gap_tasks.count}
-
-    {IF minor_gaps only:}
-    All gaps are minor. You can choose to fix them or accept as-is.
-    {ENDIF}
-    {IF critical or major gaps:}
-    Critical/major gaps need to be addressed before proceeding.
-    {ENDIF}
-
-  ---
-  ## What's Next
-
-  Current: Phase {N} -- {phase_name} | Status: gaps_found | Mode: {mode}
-
-  **Recommended next step:**
-  --> /gmsd:debug {N} -- Fix the {gap_count} verification gaps
-
-  **Other options:**
-  - /gmsd:verify-work {N} -- Re-verify (if you fixed gaps manually)
-  - /gmsd:execute-phase {N} -- Re-execute the entire phase
-  - /gmsd:progress -- View full project status"
-
-
-CASE recommendation == "REPLAN":
-
-  Update state.json:
-    phase_status: "gaps_found"
-
-  Lead to User: "Phase {N} ({phase_name}) has FUNDAMENTAL ISSUES.
-
-    The verifier recommends re-planning this phase.
-    Rationale: {recommendation_rationale}
-
-    This means the current plan cannot achieve the phase goal
-    even with gap fixes. A different approach is needed.
-
-  ---
-  ## What's Next
-
-  Current: Phase {N} -- {phase_name} | Status: gaps_found | Mode: {mode}
-
-  **Recommended next step:**
-  --> /gmsd:plan-phase {N} -- Re-plan with revised approach
-
-  **Other options:**
-  - /gmsd:debug {N} -- Attempt gap fixes anyway
-  - /gmsd:discuss-phase {N} -- Revisit decisions before re-planning
-  - /gmsd:progress -- View full project status"
+<expected_output>
+Return one of:
+- ## VERIFICATION PASSED — all checks pass
+- ## ISSUES FOUND — structured issue list
+</expected_output>
+""",
+  subagent_type="gsd-plan-checker",
+  model="{checker_model}",
+  description="Verify Phase {phase} fix plans"
+)
 ```
 
----
+On return:
+- **VERIFICATION PASSED:** Proceed to `present_ready`
+- **ISSUES FOUND:** Proceed to `revision_loop`
+</step>
 
-## Step 4: Create Gap Tasks (If FIX_GAPS)
+<step name="revision_loop">
+**Iterate planner ↔ checker until plans pass (max 3):**
 
-**Actor:** Lead
-**Condition:** Only if recommendation is FIX_GAPS and user chooses to debug
+**If iteration_count < 3:**
 
-```
-IF user chooses to proceed with gap fixes:
+Display: `Sending back to planner for revision... (iteration {N}/3)`
 
-  For each gap_task proposed in VERIFICATION.md:
-    // These tasks are NOT created in the shared task list yet
-    // They are documented in VERIFICATION.md for the debug workflow to use
-    // The debug workflow (/gmsd:debug) will create them as actual tasks
-
-  Log: "{gap_task_count} gap tasks documented in VERIFICATION.md for debug workflow."
-```
-
----
-
-## Error Handling
+Spawn gsd-planner with revision context:
 
 ```
-IF verifier subagent crashes:
-  - Check if partial VERIFICATION.md was written
-  - If partial: present what exists to user, offer to re-run or accept partial
-  - If nothing: re-spawn verifier
+Task(
+  prompt="""
+<revision_context>
 
-IF automated checks fail to run (e.g., test command not found):
-  - Verifier should note the failure in the report
-  - Continue with manual/code-review-based verification
-  - Flag missing automated verification as a gap
+**Phase:** {phase_number}
+**Mode:** revision
 
-IF VERIFICATION.md is written but malformed:
-  - Lead attempts to parse what is there
-  - If unparseable: ask user to review the raw file manually
-  - Still update state to reflect verification was attempted
+**Existing plans:**
+@.planning/phases/{phase_dir}/*-PLAN.md
 
-IF verifier produces ambiguous results (many "PARTIAL"):
-  - Present to user for interpretation
-  - Ask: "Some criteria are partially met. Do you want to:
-    1. Accept and move on
-    2. Run debug to close the partial gaps
-    3. Re-execute the phase"
+**Checker issues:**
+{structured_issues_from_checker}
+
+</revision_context>
+
+<instructions>
+Read existing PLAN.md files. Make targeted updates to address checker issues.
+Do NOT replan from scratch unless issues are fundamental.
+</instructions>
+""",
+  subagent_type="gsd-planner",
+  model="{planner_model}",
+  description="Revise Phase {phase} plans"
+)
 ```
+
+After planner returns → spawn checker again (verify_gap_plans logic)
+Increment iteration_count
+
+**If iteration_count >= 3:**
+
+Display: `Max iterations reached. {N} issues remain.`
+
+Offer options:
+1. Force proceed (execute despite issues)
+2. Provide guidance (user gives direction, retry)
+3. Abandon (exit, user runs /gmsd:plan-phase manually)
+
+Wait for user response.
+</step>
+
+<step name="sync_claude_md">
+**Sync CLAUDE.md (GMSD-specific step):**
+
+Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
+</step>
+
+<step name="present_ready">
+**Present completion and next steps:**
+
+Run `sync_claude_md` first.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GMSD ► FIXES READY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Phase {X}: {Name}** — {N} gap(s) diagnosed, {M} fix plan(s) created
+
+| Gap | Root Cause | Fix Plan |
+|-----|------------|----------|
+| {truth 1} | {root_cause} | {phase}-04 |
+| {truth 2} | {root_cause} | {phase}-04 |
+
+Plans verified and ready for execution.
+
+───────────────────────────────────────────────────────────────
+
+## What's Next
+
+**Execute fixes** — run fix plans
+
+`/clear` then `/gmsd:execute-phase {phase} --gaps-only`
+
+───────────────────────────────────────────────────────────────
+```
+
+**If no issues (all passed):**
+
+Run `sync_claude_md` first.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GMSD ► UAT PASSED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Phase {X}: {Name}** — All {N} tests passed
+
+───────────────────────────────────────────────────────────────
+
+## What's Next
+
+Current: Phase {N} — {name} | Status: verified
+
+**Recommended next step:**
+--> `/gmsd:discuss-phase {next_phase}` — Begin the next phase
+    (or `/gmsd:milestone` if this was the last phase)
+
+**Other options:**
+- `/gmsd:execute-phase {next_phase}` — Skip discuss and jump to execution
+- `/gmsd:progress` — Check full project status
+
+───────────────────────────────────────────────────────────────
+```
+</step>
+
+</process>
+
+<update_rules>
+**Batched writes for efficiency:**
+
+Keep results in memory. Write to file only when:
+1. **Issue found** — Preserve the problem immediately
+2. **Session complete** — Final write before commit
+3. **Checkpoint** — Every 5 passed tests (safety net)
+
+| Section | Rule | When Written |
+|---------|------|--------------|
+| Frontmatter.status | OVERWRITE | Start, complete |
+| Frontmatter.updated | OVERWRITE | On any file write |
+| Current Test | OVERWRITE | On any file write |
+| Tests.{N}.result | OVERWRITE | On any file write |
+| Summary | OVERWRITE | On any file write |
+| Gaps | APPEND | When issue found |
+
+On context reset: File shows last checkpoint. Resume from there.
+</update_rules>
+
+<severity_inference>
+**Infer severity from user's natural language:**
+
+| User says | Infer |
+|-----------|-------|
+| "crashes", "error", "exception", "fails completely" | blocker |
+| "doesn't work", "nothing happens", "wrong behavior" | major |
+| "works but...", "slow", "weird", "minor issue" | minor |
+| "color", "spacing", "alignment", "looks off" | cosmetic |
+
+Default to **major** if unclear. User can correct if needed.
+
+**Never ask "how severe is this?"** - just infer and move on.
+</severity_inference>
+
+<success_criteria>
+- [ ] UAT file created with all tests from SUMMARY.md
+- [ ] Tests presented one at a time with expected behavior
+- [ ] User responses processed as pass/issue/skip
+- [ ] Severity inferred from description (never asked)
+- [ ] Batched writes: on issue, every 5 passes, or completion
+- [ ] Committed on completion
+- [ ] If issues: parallel debug agents diagnose root causes
+- [ ] If issues: gsd-planner creates fix plans (gap_closure mode)
+- [ ] If issues: gsd-plan-checker verifies fix plans
+- [ ] If issues: revision loop until plans pass (max 3 iterations)
+- [ ] CLAUDE.md synced after completion
+- [ ] Ready for `/gmsd:execute-phase --gaps-only` when complete
+</success_criteria>
