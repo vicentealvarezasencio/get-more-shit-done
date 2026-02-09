@@ -1,6 +1,6 @@
 {
   "name": "get-more-shit-done-cc",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "A team-based project orchestration system for Claude Code. Research, design, plan, execute, verify — with coordinated agent teams.",
   "type": "module",
   "bin": {
