@@ -251,9 +251,21 @@ Update config.json and state.json with the chosen mode.
 
 If mode is `balanced` or `yolo`, skip this step.
 
+### 5.5. Execution Mode Check
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic:
+
+- **If `execution_mode` is `null`:** Present the user with the execution mode choice (team vs classic). Save their choice to `config.json`. If auto mode, default to `"team"` and verify the experimental flag.
+- **If `execution_mode` is `"team"`:** Continue with the team-based research flow (Step 6 below).
+- **If `execution_mode` is `"classic"`:** Skip to **Step 6-Classic** below.
+
 ### 6. Run Research Team
 
 **If auto mode:** Default to running research (always yes). Skip asking the user whether to research.
+
+**If `execution_mode` is `"classic"`:** Skip to **Step 6-Classic** below.
 
 Now run a parallel research team to explore the technical landscape for this project.
 
@@ -342,6 +354,24 @@ Wait for the synthesizer to complete.
 **Shutdown the research team:**
 
 Send shutdown requests to all teammates. Then call `TeamDelete`.
+
+### 6-Classic. Run Research (Classic Mode)
+
+**Condition:** `execution_mode == "classic"`
+
+Instead of creating a team, spawn 3 parallel `Task()` subagents (fire-and-forget). Each researcher works independently and writes directly to its output file. No shared task list, no inter-agent messaging.
+
+Follow the detailed workflow in `workflows/new-project.md` -> "Classic Research Path" section:
+
+1. Create `.planning/phases/init/research/` directory
+2. Spawn 3 parallel `Task()` subagents (one per focus area: technical, competitive, architecture)
+3. Each gets a self-contained prompt with project context and research questions
+4. Wait for all 3 to return
+5. Spawn 1 synthesizer `Task()` to merge findings into `.planning/RESEARCH.md`
+6. Wait for synthesizer to return
+7. Continue to Step 7 (Present Research Summary)
+
+The rest of the flow (Steps 7-13) is identical regardless of execution mode.
 
 ### 7. Present Research Summary
 
@@ -569,4 +599,22 @@ Current: Phase 1 — {phase_1_name} | Status: pending | Mode: {mode}
 - /gmsd:plan-phase 1 — Skip discussion and go straight to planning (if you're confident about the approach)
 - /gmsd:progress — View full project status dashboard
 - /gmsd:settings — Adjust GMSD configuration
+
+───────────────────────────────────────────────────────
+
+## 🎨 UI Design Workflow
+
+If your project has a user interface, you can set up your design system now or at any point:
+
+1. /gmsd:setup-tokens     — Pick a style preset or customize colors, fonts, spacing
+2. /gmsd:design-screens    — Spec out each screen with wireframes and components
+3. /gmsd:define-components — Extract a reusable component inventory
+4. /gmsd:export            — Export to Pencil, Figma, V0, Stitch, or generic prompts
+5. /gmsd:pencil            — Design interactively in Pencil editor
+6. /gmsd:realize           — Track which screens are implemented
+
+Quick start: `/gmsd:setup-tokens` — pick a preset and go.
+Existing codebase: `/gmsd:scan` → `/gmsd:generate-specs` to reverse-engineer specs from code.
+
+───────────────────────────────────────────────────────
 ```

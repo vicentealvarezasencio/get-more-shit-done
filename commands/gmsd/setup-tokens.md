@@ -37,9 +37,11 @@ Every question must offer:
 <step name="style_direction">
 ## Choose Your Starting Point
 
-Before diving into individual token choices, offer a style direction:
+Before diving into individual token choices, offer a style direction. Frame it clearly: picking a preset gives you a **coherent, complete starting point** — not a locked-in choice. Every token can be tweaked here, and the full design is freely editable later in Pencil, Figma, V0, or any tool they export to.
 
 **Question: How would you like to set up your design tokens?**
+
+*Each preset is just a starting point — a complete, coherent set of tokens you can customize. Everything remains fully editable when you export to Pencil, Figma, V0, or any other design tool.*
 
 Options:
 - **Precision Dark** — Engineered for focus: high-contrast dark interface for speed and deep work. *Inspired by Linear, Vercel, Raycast.* (Indigo primary, Inter font, compact 14px base, small radii, minimal shadows)

@@ -326,9 +326,37 @@ git push origin $(git branch --show-current)
 
 </git_integration>
 
-<examples>
+<completion>
 
-## Example Session
+## Completion Summary
 
 ```
-User: /gmsd:logo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ UI ► LOGO SPEC CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Logo:        [style] [type] for [app name]
+Colors:      [primary] + [secondary/accent]
+Prompts:     Generated for [tools]
+Favicon:     [Yes/No]
+
+Files:
+  .planning/LOGO-SPEC.md
+  .planning/design/ui-exports/logo-prompts.md
+
+───────────────────────────────────────────────────────
+
+## ▶ Next Up
+
+**Generate the logo** — Use the prompts with your preferred tool:
+  - `/gmsd:pencil` — Design directly in Pencil
+  - `/gmsd:export` — Export prompts for Stitch, V0, Figma
+
+**Continue designing:**
+  - `/gmsd:design-screens` — Create screen specifications
+  - `/gmsd:setup-tokens` — Set up design tokens (if not done)
+
+───────────────────────────────────────────────────────
+```
+
+</completion>

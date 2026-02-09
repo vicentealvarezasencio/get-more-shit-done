@@ -1132,3 +1132,50 @@ Create it?
 - Fixes suggested or applied
 
 </success_criteria>
+
+<workflow_guidance>
+
+## Next Steps After Pencil Work
+
+After any Pencil subcommand completes, suggest the logical next action:
+
+**After /gmsd:pencil open:**
+- `/gmsd:pencil sync --push` — Push screen specs into the design
+- `/gmsd:pencil iterate` — Start refining the design interactively
+
+**After /gmsd:pencil sync:**
+- `/gmsd:pencil validate` — Verify the design matches specs
+- `/gmsd:pencil iterate` — Refine specific elements
+- `/gmsd:realize` — Mark synced screens as realized
+
+**After /gmsd:pencil iterate (done):**
+- `/gmsd:pencil sync --pull` — Pull changes back into specs
+- `/gmsd:pencil validate` — Check against spec requirements
+- `/gmsd:export` — Export updated designs to other tools
+
+**After /gmsd:pencil validate:**
+- `/gmsd:pencil iterate` — Fix any issues found
+- `/gmsd:realize` — Mark validated screens as realized
+- `/gmsd:ui-sync` — Sync specs with implementation
+
+**After /gmsd:pencil style:**
+- `/gmsd:pencil iterate` — Refine after style application
+- `/gmsd:export` — Export the styled design
+
+**General workflow reminder:**
+```
+───────────────────────────────────────────────────────
+
+## ▶ Typical Flow
+
+/gmsd:pencil open → sync --push → iterate → validate → sync --pull → /gmsd:realize
+
+Other commands:
+  /gmsd:export      — Export to Figma, V0, Stitch, or generic
+  /gmsd:ui-sync     — Check drift between specs and code
+  /gmsd:ui-status   — Review overall progress
+
+───────────────────────────────────────────────────────
+```
+
+</workflow_guidance>

@@ -311,6 +311,15 @@ Impact: [level]
 
 File Updated: .planning/design/UI-DECISIONS.md
 
+───────────────────────────────────────────────────────
+
+## ▶ Continue With
+
+- `/gmsd:design-screens` — Update screens affected by this decision
+- `/gmsd:sync` — Check if implementations need updating
+- `/gmsd:export` — Regenerate exports reflecting the change
+- `/gmsd:ui-status` — Review overall spec coverage
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 </step>
