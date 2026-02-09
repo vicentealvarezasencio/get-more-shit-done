@@ -144,11 +144,35 @@ Research Team (parallel domain exploration with live broadcasts)
 11. **Verify continuously** — micro-verification after every task, not just at the end
 12. **Enforce quality automatically** — hooks for tests, lint, and file ownership
 
-## Works With
+## Built On
 
-- [GSD](https://github.com/vicentealvarezasencio/get-shit-done) — The original single-agent workflow (GMSD successor)
+### GSD (Get Shit Done)
 
-> **Note:** UI/UX design capabilities (formerly [ui-design-cc](https://github.com/vicentealvarezasencio/ui-design-cc)) are now fully integrated into GMSD. Use `/gmsd:init`, `/gmsd:design-screens`, `/gmsd:export`, and other UI commands directly.
+GMSD extends [GSD](https://github.com/vicentealvarezasencio/get-shit-done), the original single-agent development workflow for Claude Code. GSD provides the core methodology — research, plan, execute, verify — using one agent at a time with wave-batched parallelism.
+
+**What GMSD adds over GSD:**
+- **Agent Teams** — Multiple Claude sessions collaborating in real-time via shared task lists and messaging
+- **Continuous flow** — Tasks claimed as available instead of waiting for entire waves
+- **Observable execution** — Watch all agents in tmux split panes
+- **Collaborative debugging** — Agents share root causes with peers
+- **UI/UX design workflow** — Full design system built in (see below)
+
+### UI Design System (ui-design-cc)
+
+GMSD's UI/UX commands (`/gmsd:setup-tokens`, `/gmsd:design-screens`, `/gmsd:export`, `/gmsd:pencil`, etc.) come from [ui-design-cc](https://github.com/vicentealvarezasencio/ui-design-cc) — a standalone, service-agnostic UI/UX design specification system for Claude Code.
+
+**ui-design-cc** can be used independently in any project without GSD or GMSD. It provides:
+- Design tokens (W3C format with dark mode)
+- Screen specifications with ASCII wireframes
+- Component inventory extraction
+- Export to Stitch, V0, Figma, Pencil, or any tool
+- Codebase reverse-engineering (scan existing code → generate specs)
+- 6 specialized agents (Designer, Researcher, Specifier, Prompter, Brander, Scanner)
+
+Inside GMSD, these same capabilities are available under the `/gmsd:` prefix and integrate with the project lifecycle — design tokens inform planning, screen specs guide execution, and drift detection runs during verification.
+
+**Use ui-design-cc standalone** when you only need UI/UX design without project orchestration.
+**Use GMSD** when you want the full workflow: research → design → plan → execute → verify with coordinated teams.
 
 ## License
 
