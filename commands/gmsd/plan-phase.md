@@ -2,13 +2,25 @@
 
 You are the GMSD planning orchestrator. Your job is to produce a high-quality execution plan for a specific phase, complete with tasks, dependencies, file ownership, and a verification spec.
 
-**This command accepts a phase number as argument.** When the user runs `/gmsd:plan-phase 3`, the argument is `3`.
+**This command accepts a phase number and optional flags as arguments.** When the user runs `/gmsd:plan-phase 3 --gaps`, the phase number is `3` and the `--gaps` flag is set.
+
+**Supported flags:** `--research`, `--skip-research`, `--gaps`, `--skip-verify`
 
 ## Instructions
 
-### 1. Parse Phase Number
+### 1. Parse Phase Number and Flags
 
-Extract the phase number from the command argument.
+Extract the phase number and flags from the command argument.
+
+**Flags:**
+- `--research` — Force re-research even if RESEARCH.md exists
+- `--skip-research` — Skip research, go straight to planning
+- `--gaps` — Gap closure mode (reads VERIFICATION.md for gap tasks, skips research)
+- `--skip-verify` — Skip the plan verification loop
+
+Parse the argument string to separate the phase number (integer or decimal like `2.1`) from any flags. For example, `/gmsd:plan-phase 3 --gaps --skip-verify` means phase 3 with `--gaps` and `--skip-verify` flags.
+
+Store the parsed flags as booleans: `flag_research`, `flag_skip_research`, `flag_gaps`, `flag_skip_verify`.
 
 **If no phase number is provided:**
 - Read `.planning/state.json` to get `current_phase`
@@ -52,11 +64,17 @@ Show what context was found:
 
 ### 3. Phase Research (if needed)
 
+**Skip research entirely if:** `flag_gaps` is true, OR `flag_skip_research` is true. If `flag_gaps` is true, instead read `.planning/phases/{N}-{name}/VERIFICATION.md` (or the phase's verification results) for gap closure context to pass to the planner in Step 4.
+
+**If research is NOT skipped:**
+
 Check if `.planning/phases/{N}-{name}/RESEARCH.md` exists.
 
-**If it does NOT exist**, run a lightweight research pass. This is a single-agent research task (NOT a full team — planning research is lighter than project research).
+**If RESEARCH.md exists AND `flag_research` is false:** Use the existing research, skip to Step 4.
 
-Read the model overrides from `.planning/config.json`. Check for `model_overrides["gsd-phase-researcher"]` or `model_overrides["researcher"]`. Use the specified model if an override exists.
+**If RESEARCH.md does NOT exist, OR `flag_research` is true:** Run a lightweight research pass. This is a single-agent research task (NOT a full team — planning research is lighter than project research).
+
+Read the model overrides from `.planning/config.json`. Check for `model_overrides["gmsd-phase-researcher"]` first, then fall back to `model_overrides["gsd-phase-researcher"]`, then fall back to `model_overrides["researcher"]`. Use the first matching override if one exists.
 
 Spawn a single researcher subagent using the Task tool:
 
@@ -94,7 +112,7 @@ Show: `Research complete. Phase-level RESEARCH.md written.`
 
 Now spawn the planner agent to create the execution plan.
 
-Read the model overrides from `.planning/config.json`. Check for `model_overrides["gsd-planner"]` or `model_overrides["planner"]`. Use the specified model if an override exists.
+Read the model overrides from `.planning/config.json`. Check for `model_overrides["gmsd-planner"]` first, then fall back to `model_overrides["gsd-planner"]`, then fall back to `model_overrides["planner"]`. Use the first matching override if one exists.
 
 Spawn the planner subagent:
 
@@ -156,9 +174,11 @@ Wait for the planner to complete.
 
 ### 5. Plan Verification
 
+**If `flag_skip_verify` is true:** Skip this step entirely and proceed to Step 6 (User Approval). Show: `Plan verification skipped (--skip-verify flag).`
+
 Spawn a plan checker to review the plan quality.
 
-Read the model overrides from `.planning/config.json`. Check for `model_overrides["gsd-plan-checker"]` or `model_overrides["plan-checker"]`. Use the specified model if an override exists.
+Read the model overrides from `.planning/config.json`. Check for `model_overrides["gmsd-plan-checker"]` first, then fall back to `model_overrides["gsd-plan-checker"]`, then fall back to `model_overrides["plan-checker"]`. Use the first matching override if one exists.
 
 ```
 Task(

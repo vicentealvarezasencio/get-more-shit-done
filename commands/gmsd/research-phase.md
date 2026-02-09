@@ -83,13 +83,17 @@ Wait for user response.
 
 ### 4. Spawn Researcher
 
-Read the model overrides from `.planning/config.json`. Check for `model_overrides["gmsd-researcher"]` first, then `model_overrides["gmsd-phase-researcher"]`, then `model_overrides["researcher"]`. Use the specified model if an override exists.
+Read the model overrides from `.planning/config.json`. Check for `model_overrides["gmsd-phase-researcher"]` first, then fall back to `model_overrides["gsd-phase-researcher"]`, then fall back to `model_overrides["researcher"]`. Use the first matching override if one exists.
+
+**Note:** If the file `agents/gmsd-researcher.md` exists in the project root, instruct the researcher subagent to follow its patterns for structured research output.
 
 Spawn a single researcher subagent using the Task tool (NOT a full team — this is a focused single-agent research task):
 
 ```
 Task(
-  prompt="You are a GMSD phase researcher. Run a thorough research pass for a specific phase.
+  prompt="First, read agents/gmsd-researcher.md if it exists for your role and research patterns.
+
+You are a GMSD phase researcher. Run a thorough research pass for a specific phase.
 
 PROJECT: {project_name}
 VISION: {project_vision from PROJECT.md}
@@ -135,9 +139,73 @@ Use the GMSD research template format:
 
 Wait for the researcher to complete.
 
+### 4b. Handle Researcher Return and Checkpoint Continuation
+
+After the researcher subagent completes, inspect its output for status indicators:
+
+**If the output contains `## RESEARCH COMPLETE`:** Research is done. Continue to Step 5.
+
+**If the output contains `## CHECKPOINT REACHED`:** The researcher hit a checkpoint (incomplete research, needs user input, or context limit approaching). Handle this:
+
+1. Present the checkpoint information to the user:
+   ```
+    RESEARCH CHECKPOINT — Phase {N}: {phase_name}
+    ─────────────────────────────────────────────────────────────
+
+    The researcher paused at a checkpoint:
+      {checkpoint reason/question from the researcher output}
+
+    Research completed so far has been written to:
+      .planning/phases/{N}-{name}/RESEARCH.md
+
+    Options:
+      1. Continue  — Provide guidance and spawn a continuation agent
+      2. Accept    — Use the research as-is (partial)
+      3. Cancel    — Discard and stop
+   ```
+
+2. Wait for user response.
+
+3. **If "Continue":** Spawn a continuation agent with the previous research context:
+
+   ```
+   Task(
+     prompt="First, read agents/gmsd-researcher.md if it exists for your role and research patterns.
+
+   You are a GMSD phase researcher continuing a research pass that hit a checkpoint.
+
+   PROJECT: {project_name}
+   PHASE {N}: {phase_name}
+
+   PRIOR RESEARCH (already written to .planning/phases/{N}-{name}/RESEARCH.md):
+   {contents of the existing RESEARCH.md written by the previous researcher}
+
+   CHECKPOINT INFO:
+   {checkpoint type and details from the previous researcher output}
+
+   USER RESPONSE:
+   {user's guidance or answer to the checkpoint question}
+
+   YOUR JOB:
+   Continue the research from where the previous researcher left off. Read the existing RESEARCH.md first to understand what has been covered. Fill in the gaps, address the checkpoint, and update the RESEARCH.md file with the complete findings.
+
+   APPEND your additional findings to the existing .planning/phases/{N}-{name}/RESEARCH.md under a new section headed '## Continued Research — {current_date}'."
+   )
+   ```
+
+   Wait for the continuation agent to complete. If it also hits a checkpoint, repeat this process (up to 3 continuation cycles). After 3 cycles, present the partial research to the user and proceed.
+
+4. **If "Accept":** Continue to Step 5 with the partial research.
+
+5. **If "Cancel":** Skip to Step 7 with a message: "Research cancelled at checkpoint. Partial findings may exist in .planning/phases/{N}-{name}/RESEARCH.md."
+
+**If the output contains `## RESEARCH INCONCLUSIVE`:** Show what was attempted, offer: 1) Add context and retry, 2) Try a different approach, 3) Accept partial results.
+
 ### 5. Present Research Findings
 
 Read the newly created `.planning/phases/{N}-{name}/RESEARCH.md`.
+
+**Note on output filename:** The research file MUST be written to `.planning/phases/{N}-{name}/RESEARCH.md`, where `{N}-{name}` matches the phase directory convention (e.g., `01-setup`, `02-auth`). Verify the file was written to the correct location inside the phase directory.
 
 Present the key findings to the user with mode-appropriate detail:
 

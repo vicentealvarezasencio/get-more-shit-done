@@ -79,13 +79,13 @@ Create 4 tasks, one for each focus area:
 **Task 1 — Technology Mapping:**
 ```
 TaskCreate(
-  subject: "Map: Technology Stack",
-  description: "Identify all languages, frameworks, dependencies, build tools, package managers, and runtime requirements in this codebase.
+  subject: "Map: Technology Stack & Integrations",
+  description: "Identify all languages, frameworks, dependencies, build tools, package managers, runtime requirements, and external integrations in this codebase.
 
 CODEBASE CONTEXT:
 {context string from Step 2}
 
-FOCUS AREAS:
+FOCUS AREAS — STACK.md:
 - Languages and their versions (check config files, CI configs, .tool-versions, .node-version, etc.)
 - Frameworks and core libraries (with versions)
 - All dependencies (direct and dev) from package manifests
@@ -95,8 +95,20 @@ FOCUS AREAS:
 - Infrastructure dependencies (Docker, docker-compose, Terraform, etc.)
 - Environment configuration (.env files, config patterns)
 
-Write findings to: .planning/codebase/technology.md",
-  active_form: "Mapping technology stack"
+FOCUS AREAS — INTEGRATIONS.md:
+- External APIs and services (REST, GraphQL, gRPC endpoints called)
+- Databases and data stores (PostgreSQL, MongoDB, Redis, S3, etc.)
+- Auth providers (OAuth, JWT, Auth0, Firebase Auth, etc.)
+- Webhooks (inbound and outbound)
+- Third-party SDKs and service clients
+- Message queues and event buses (Kafka, RabbitMQ, SQS, etc.)
+- Email/SMS/notification services
+- Payment providers, analytics, monitoring services
+
+Write TWO files:
+- .planning/codebase/STACK.md — Technology stack and dependencies
+- .planning/codebase/INTEGRATIONS.md — External APIs, databases, auth providers, webhooks",
+  active_form: "Mapping technology stack and integrations"
 )
 ```
 
@@ -104,13 +116,12 @@ Write findings to: .planning/codebase/technology.md",
 ```
 TaskCreate(
   subject: "Map: Architecture & Structure",
-  description: "Analyze the directory structure, architectural patterns, data flow, and API structure of this codebase.
+  description: "Analyze the architectural patterns, data flow, directory structure, and code organization of this codebase.
 
 CODEBASE CONTEXT:
 {context string from Step 2}
 
-FOCUS AREAS:
-- Directory structure and organization philosophy (feature-based, layer-based, hybrid)
+FOCUS AREAS — ARCHITECTURE.md:
 - Architectural pattern (MVC, MVVM, Clean Architecture, hexagonal, microservices, monolith, serverless, etc.)
 - Entry points (main files, index files, server bootstrap)
 - Routing patterns (file-based routing, explicit router, API routes)
@@ -118,10 +129,20 @@ FOCUS AREAS:
 - Data models and database schema (ORM models, migrations, schema files)
 - API structure (REST endpoints, GraphQL schema, RPC definitions, tRPC routers)
 - Internal module boundaries and dependencies
+- Data flow between layers and components
+- Abstractions and key interfaces
+
+FOCUS AREAS — STRUCTURE.md:
+- Directory structure and organization philosophy (feature-based, layer-based, hybrid)
+- Key locations (where to find models, routes, tests, configs, etc.)
+- Naming conventions (files, directories, modules)
 - Shared code and utility patterns
 - Configuration management patterns
+- Build output and artifact locations
 
-Write findings to: .planning/codebase/architecture.md",
+Write TWO files:
+- .planning/codebase/ARCHITECTURE.md — Pattern, layers, data flow, abstractions, entry points
+- .planning/codebase/STRUCTURE.md — Directory layout, key locations, naming conventions",
   active_form: "Mapping architecture and structure"
 )
 ```
@@ -129,28 +150,37 @@ Write findings to: .planning/codebase/architecture.md",
 **Task 3 — Quality Mapping:**
 ```
 TaskCreate(
-  subject: "Map: Quality & Standards",
-  description: "Assess test coverage, linting configuration, CI/CD pipelines, code style conventions, and documentation quality.
+  subject: "Map: Conventions & Testing",
+  description: "Assess code style conventions, coding patterns, test coverage, testing framework, and CI/CD pipelines.
 
 CODEBASE CONTEXT:
 {context string from Step 2}
 
-FOCUS AREAS:
+FOCUS AREAS — CONVENTIONS.md:
+- Code style and formatting (ESLint, Prettier, Clippy, golangci-lint, Rubocop, etc.)
+- Naming conventions (variables, functions, files, classes)
+- Code patterns and idioms used consistently
+- Error handling conventions
+- Logging patterns
+- Type safety level (strict TypeScript, mypy, type hints)
+- Pre-commit hooks (husky, lint-staged, pre-commit framework)
+- Code formatting rules and .editorconfig
+- Code review requirements (CODEOWNERS, branch protection indicators)
+- Documentation conventions (README, inline docs, API docs, JSDoc/rustdoc/godoc)
+
+FOCUS AREAS — TESTING.md:
 - Test files and testing framework (Jest, Vitest, pytest, Go test, RSpec, etc.)
 - Test coverage configuration and reports
 - Test patterns (unit, integration, e2e, snapshot)
-- Linting configuration (ESLint, Prettier, Clippy, golangci-lint, Rubocop, etc.)
-- Code formatting rules and .editorconfig
-- Pre-commit hooks (husky, lint-staged, pre-commit framework)
+- Test directory structure and naming conventions
+- Mocking patterns and test utilities
 - CI/CD configuration (GitHub Actions, GitLab CI, CircleCI, Jenkins, etc.)
-- Code review requirements (CODEOWNERS, branch protection indicators)
-- Documentation quality (README completeness, inline docs, API docs, JSDoc/rustdoc/godoc)
-- Type safety level (strict TypeScript, mypy, type hints)
-- Error handling conventions
-- Logging patterns
+- Test data and fixtures approach
 
-Write findings to: .planning/codebase/quality.md",
-  active_form: "Mapping quality and standards"
+Write TWO files:
+- .planning/codebase/CONVENTIONS.md — Code style, naming, patterns, error handling
+- .planning/codebase/TESTING.md — Framework, structure, mocking, coverage",
+  active_form: "Mapping conventions and testing"
 )
 ```
 
@@ -177,7 +207,7 @@ FOCUS AREAS:
 - Large files or binary files committed to the repo
 - Inconsistent patterns (multiple ways of doing the same thing)
 
-Write findings to: .planning/codebase/concerns.md",
+Write findings to: .planning/codebase/CONCERNS.md",
   active_form: "Mapping concerns and technical debt"
 )
 ```
@@ -187,6 +217,12 @@ Write findings to: .planning/codebase/concerns.md",
 Spawn 4 mapper agents, one per focus area. Each mapper uses the `gmsd-codebase-mapper` agent definition.
 
 For each mapper `i` from 0 to 3, with focus areas `["tech", "architecture", "quality", "concerns"]`:
+
+**Output file mapping:**
+- tech mapper writes: `STACK.md` + `INTEGRATIONS.md`
+- architecture mapper writes: `ARCHITECTURE.md` + `STRUCTURE.md`
+- quality mapper writes: `CONVENTIONS.md` + `TESTING.md`
+- concerns mapper writes: `CONCERNS.md`
 
 ```
 Task(
@@ -203,7 +239,7 @@ Task(
 2. Claim it: `TaskUpdate(task_id, owner='mapper-{focus}', status='in_progress')`
 3. Read the full task description from `TaskGet(task_id)`
 4. Explore the codebase systematically using Glob, Grep, and Read tools
-5. Write your analysis to `.planning/codebase/{focus}.md`
+5. Write your analysis to the output file(s) specified in the task description under `.planning/codebase/`
 6. Broadcast any critical cross-cutting findings to peers
 7. Mark your task complete and report to lead
 
@@ -267,11 +303,14 @@ If a mapper stops responding or reports a blocker:
 
 ### Step 6: Synthesize Results
 
-After all mappers complete, read all four analysis files:
-- `.planning/codebase/technology.md`
-- `.planning/codebase/architecture.md`
-- `.planning/codebase/quality.md`
-- `.planning/codebase/concerns.md`
+After all mappers complete, read all seven analysis files:
+- `.planning/codebase/STACK.md`
+- `.planning/codebase/INTEGRATIONS.md`
+- `.planning/codebase/ARCHITECTURE.md`
+- `.planning/codebase/STRUCTURE.md`
+- `.planning/codebase/CONVENTIONS.md`
+- `.planning/codebase/TESTING.md`
+- `.planning/codebase/CONCERNS.md`
 
 Create `.planning/codebase/OVERVIEW.md` with the following structure:
 
@@ -298,19 +337,31 @@ Create `.planning/codebase/OVERVIEW.md` with the following structure:
 
 ## Technology Stack
 
-{Summarized from technology.md — key technologies, versions, and dependencies}
+{Summarized from STACK.md — key technologies, versions, and dependencies}
+
+## External Integrations
+
+{Summarized from INTEGRATIONS.md — APIs, databases, auth providers, services}
 
 ## Architecture
 
-{Summarized from architecture.md — structure, patterns, data flow}
+{Summarized from ARCHITECTURE.md — patterns, layers, data flow, abstractions}
 
-## Quality Profile
+## Project Structure
 
-{Summarized from quality.md — testing, linting, CI/CD, conventions}
+{Summarized from STRUCTURE.md — directory layout, key locations, naming}
+
+## Conventions
+
+{Summarized from CONVENTIONS.md — code style, naming, patterns, error handling}
+
+## Testing
+
+{Summarized from TESTING.md — framework, structure, coverage, CI/CD}
 
 ## Concerns & Technical Debt
 
-{Summarized from concerns.md — prioritized list of concerns}
+{Summarized from CONCERNS.md — prioritized list of concerns}
 
 ### Priority Issues
 
@@ -330,10 +381,13 @@ Create `.planning/codebase/OVERVIEW.md` with the following structure:
 ## Detailed Analysis
 
 For full details, see the individual analysis files:
-- [Technology Stack](.planning/codebase/technology.md)
-- [Architecture & Structure](.planning/codebase/architecture.md)
-- [Quality & Standards](.planning/codebase/quality.md)
-- [Concerns & Technical Debt](.planning/codebase/concerns.md)
+- [Technology Stack](.planning/codebase/STACK.md)
+- [External Integrations](.planning/codebase/INTEGRATIONS.md)
+- [Architecture](.planning/codebase/ARCHITECTURE.md)
+- [Project Structure](.planning/codebase/STRUCTURE.md)
+- [Conventions](.planning/codebase/CONVENTIONS.md)
+- [Testing](.planning/codebase/TESTING.md)
+- [Concerns & Technical Debt](.planning/codebase/CONCERNS.md)
 ```
 
 ### Step 7: Shutdown Team
@@ -350,6 +404,21 @@ SendMessage(type="shutdown_request", recipient="mapper-{focus}",
 ```
 TeamDelete("gmsd-codebase-map")
 ```
+
+### Step 7b: Commit Codebase Map
+
+After the team is shut down and all documents (including OVERVIEW.md) are written, commit the codebase map:
+
+```bash
+git add .planning/codebase/ && git commit -m "gmsd: codebase map for {project_name}"
+```
+
+If `project_name` is not available (standalone run without config), use the directory name:
+```bash
+git add .planning/codebase/ && git commit -m "gmsd: codebase map for $(basename $(pwd))"
+```
+
+If the commit fails (e.g., nothing to commit, or git not initialized), note the issue but continue to the summary.
 
 ### Step 8: Present Summary to User
 
@@ -376,10 +445,13 @@ Display the key findings:
 
 Full analysis written to `.planning/codebase/`:
 - OVERVIEW.md — Synthesized summary
-- technology.md — Languages, frameworks, dependencies
-- architecture.md — Structure, patterns, data flow
-- quality.md — Tests, linting, CI/CD, conventions
-- concerns.md — Tech debt, security, deprecated deps
+- STACK.md — Languages, frameworks, dependencies
+- INTEGRATIONS.md — External APIs, databases, services
+- ARCHITECTURE.md — Patterns, layers, data flow
+- STRUCTURE.md — Directory layout, organization
+- CONVENTIONS.md — Code style, naming, patterns
+- TESTING.md — Test framework, structure, coverage
+- CONCERNS.md — Tech debt, security, deprecated deps
 ```
 
 ### Step 9: Update State (if project exists)

@@ -13,20 +13,25 @@ You are the GMSD session resumer. You restore context from a previous session an
 1. Read `.planning/state.json` for current state.
 2. Read `.planning/config.json` for project settings.
 3. Read `.planning/ROADMAP.md` for phase context.
-4. Check if `.planning/HANDOFF.md` exists.
+4. **Check for handoff files (in priority order):**
+   a. Glob for `.planning/phases/*/.continue-here.md` — this is the GSD convention and the primary handoff location. If found, use the first match as the primary handoff source.
+   b. If no `.continue-here.md` is found, fall back to checking `.planning/HANDOFF.md` (legacy/pointer location). If it exists and contains a `See:` pointer to a `.continue-here.md` path, follow that pointer and read the referenced file.
+   c. If `.planning/HANDOFF.md` exists but contains full handoff content (no pointer), use it directly (backward compatibility with older pause sessions).
 5. Store the current timestamp.
 
 ### Step 1: Determine Resume Source
 
-**If HANDOFF.md exists:** This was a deliberate pause. Use it as the primary context source.
+**If `.continue-here.md` was found (in a phase directory):** This was a deliberate pause using the GSD convention. Use it as the primary context source. This file contains the full handoff content.
 
-**If HANDOFF.md does NOT exist:** The session ended without a formal pause (crash, timeout, closed terminal). Reconstruct context from `state.json` and the planning artifacts.
+**If only `.planning/HANDOFF.md` exists (with full content, no pointer):** This was a deliberate pause from an older session. Use it as the primary context source.
+
+**If neither file exists:** The session ended without a formal pause (crash, timeout, closed terminal). Reconstruct context from `state.json` and the planning artifacts.
 
 ### Step 2: Present Session Context
 
-#### If HANDOFF.md Exists
+#### If Handoff File Exists (`.continue-here.md` or `HANDOFF.md`)
 
-Read `.planning/HANDOFF.md` in full. Present a resume summary to the user:
+Read the handoff file in full (whichever was found in Step 0/1). Present a resume summary to the user:
 
 ```
 ## Resuming Session
@@ -40,7 +45,7 @@ Read `.planning/HANDOFF.md` in full. Present a resume summary to the user:
 **Phase {N}: {name}**
 **Status when paused:** {phase_status}
 
-{Summary of what was happening — extracted from HANDOFF.md "What Was Happening" section}
+{Summary of what was happening — extracted from handoff file "What Was Happening" section}
 ```
 
 **If paused mid-execution:**
@@ -66,14 +71,14 @@ Read `.planning/HANDOFF.md` in full. Present a resume summary to the user:
 
 {If there were active decisions or blockers:}
 ### Unresolved Items
-{list from HANDOFF.md}
+{list from handoff file}
 ```
 
 **If paused mid-planning:**
 ```
 ### Planning Progress
 
-{Description from HANDOFF.md about what has been planned vs what is still open}
+{Description from handoff file about what has been planned vs what is still open}
 
 **Decisions locked:** {count}
 **Questions open:** {count}
@@ -83,7 +88,7 @@ Read `.planning/HANDOFF.md` in full. Present a resume summary to the user:
 ```
 ### Research Progress
 
-{Description from HANDOFF.md about topics covered and remaining}
+{Description from handoff file about topics covered and remaining}
 ```
 
 **If paused mid-debugging:**
@@ -95,7 +100,7 @@ Read `.planning/HANDOFF.md` in full. Present a resume summary to the user:
 **Gaps remaining:** {count}
 ```
 
-#### If No HANDOFF.md (Unclean Exit)
+#### If No Handoff File Found (Unclean Exit)
 
 Reconstruct from `state.json`:
 
@@ -158,13 +163,13 @@ Wait for user response.
 **If "Resume execution" (most common):**
 1. Update `state.json`: `phase_status: "executing"` (remove the "paused" status)
 2. Inform the user that `/gmsd:execute-phase {N}` will detect the paused state and resume with only remaining tasks
-3. Clean up HANDOFF.md (see Step 5)
+3. Clean up handoff files (see Step 5)
 4. Show What's Next pointing to `/gmsd:execute-phase {N}`
 
 **If "Skip to verification":**
 1. Update `state.json`: `phase_status: "executed"` (mark as executed even though not all tasks ran)
 2. Note in history that execution was partial
-3. Clean up HANDOFF.md
+3. Clean up handoff files (see Step 5)
 4. Show What's Next pointing to `/gmsd:verify-work {N}`
 
 **If "Review tasks first":**
@@ -172,7 +177,7 @@ Display the full task list from PLAN.md with status from the handoff, then re-as
 
 **If "Start fresh":**
 1. Update `state.json`: `phase_status: "planned"` (reset to before execution)
-2. Clean up HANDOFF.md
+2. Clean up handoff files (see Step 5)
 3. Show What's Next pointing to `/gmsd:execute-phase {N}`
 
 ---
@@ -267,13 +272,16 @@ Append to `history`:
 }
 ```
 
-### Step 5: Clean Up HANDOFF.md
+### Step 5: Clean Up Handoff Files
 
-After the user has chosen a resume path and is about to run the next command:
+After the user has chosen a resume path and is about to run the next command, clean up **both** handoff file locations:
 
-Delete `.planning/HANDOFF.md` — it has served its purpose. The state is now captured in `state.json` and the user's chosen next step.
+1. Delete `.planning/phases/{N}-{name}/.continue-here.md` (the primary handoff file) if it exists.
+2. Delete `.planning/HANDOFF.md` (the pointer file) if it exists.
 
-If the user chose "Review tasks first" or is still deciding, do NOT delete HANDOFF.md yet. Only clean up when a concrete next action has been chosen.
+Both files have served their purpose. The state is now captured in `state.json` and the user's chosen next step.
+
+If the user chose "Review tasks first" or is still deciding, do NOT delete the handoff files yet. Only clean up when a concrete next action has been chosen.
 
 ### Step 6: What's Next
 

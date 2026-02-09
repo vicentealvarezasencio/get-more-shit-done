@@ -73,8 +73,10 @@ Before creating the team, run pre-flight validation on the plan to catch structu
 5. Check if design specs exist:
    - Read `.planning/design/design-tokens.json` if it exists
    - Read `.planning/design/COMPONENTS.md` if it exists
+   - Read `.planning/design/UI-CONTEXT.md` if it exists — visual consistency guidelines and brand rules
    - Check for screen specs in `.planning/design/screens/`
    - If design specs exist, they MUST be referenced in executor task descriptions
+   - Check if the phase has UI components (look for `has_ui_components` flag in PLAN.md, or check for UI-related tasks like component creation, screen implementation, styling). If yes, mark the phase as UI-involved so executors load design context.
 
 ### Step 2: Create the Shared Task List
 
@@ -307,6 +309,12 @@ For each task you claim:
 2. Read ALL files listed in "Files to Read Before Starting"
 3. Read the design spec files referenced (if any)
 4. Understand the acceptance criteria — these are your definition of done
+
+### Phase A.5: Load UI Context (if applicable)
+If this task involves UI components (check the task description for UI-related files, components, or screens):
+1. Read `.planning/design/design-tokens.json` (if it exists) — for colors, spacing, typography, and other visual tokens
+2. Read `.planning/design/UI-CONTEXT.md` (if it exists) — for visual consistency guidelines, brand rules, and component patterns
+3. Apply these tokens and guidelines to all UI work in this task
 
 ### Phase B: Implement
 1. Create or modify the files listed in "Files to Create or Modify"

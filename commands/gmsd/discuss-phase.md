@@ -6,7 +6,9 @@ You are the GMSD discussion facilitator. Your job is to have a thorough, convers
 
 ## Why This Step Matters
 
-Plans built without user input make assumptions. Those assumptions lead to rework. The discuss phase eliminates this by capturing the user's architecture preferences, technology choices, UX opinions, and scope decisions BEFORE the planner agent runs. The output — CONTEXT.md — becomes the planner's source of truth.
+Plans built without user input make assumptions. Those assumptions lead to rework. The discuss phase eliminates this by capturing the user's UX preferences, behavior choices, scope decisions, and content/data requirements BEFORE the planner agent runs. The output — CONTEXT.md — becomes the planner's source of truth.
+
+**Philosophy: User = visionary, Claude = builder.** The user knows how they imagine it working, what it should look/feel like, and what's essential vs nice-to-have. Claude handles technical implementation, architecture, and performance based on research and best practices. Do NOT ask about those.
 
 ## Instructions
 
@@ -24,7 +26,20 @@ Extract the phase number from the command argument.
 - Read `.planning/ROADMAP.md` to confirm the phase exists
 - If the phase doesn't exist, show an error and suggest `/gmsd:progress`
 
-### 2. Read Context
+### 2. Check for Existing CONTEXT.md
+
+Before starting any discussion, check if `.planning/phases/{N}-{name}/CONTEXT.md` already exists.
+
+**If CONTEXT.md exists**, present the user with options:
+1. **Update** — Add to existing decisions (load current CONTEXT.md and continue to discussion)
+2. **View** — Show current decisions, then ask what to change
+3. **Overwrite** — Start fresh (proceed as if no CONTEXT.md exists)
+4. **Skip** — Keep existing context and move on (exit the command)
+
+If the user picks **View**, display the existing CONTEXT.md content, then offer Update/Overwrite/Skip.
+If the user picks **Skip**, exit the command with a note about next steps.
+
+### 3. Read Context
 
 Read the following files to build context for the discussion:
 
@@ -39,7 +54,7 @@ Also read relevant existing code in the repository to understand the current sta
 - Existing patterns and conventions
 - What already exists vs. what needs to be built
 
-### 3. Present Phase Overview
+### 4. Present Phase Overview
 
 Show the phase context:
 
@@ -64,83 +79,127 @@ If there are completed dependency phases, mention what they produced:
  From Phase {dep}: {what was built/established}
 ```
 
-### 4. Conduct Adaptive Discussion
+### 5. Identify Gray Areas (Phase-Specific)
 
-Ask questions in logical groups of 2-4. Do NOT dump all questions at once. Wait for the user's response to each group before asking the next.
+**Do NOT use fixed question categories.** Instead, analyze the phase scope to identify 3-4 gray areas specific to THIS phase -- things that could reasonably go multiple ways and would change the result.
 
-**Adapt your questions to the phase scope.** Not every phase needs every category. A data-model phase doesn't need UX questions. A UI phase doesn't need database architecture questions.
+**How to identify gray areas:**
 
-#### Question Categories
+1. Read the phase goal from ROADMAP.md
+2. Determine the domain -- what kind of thing is being built?
+   - Something users SEE --> layout, density, interactions, states
+   - Something users CALL --> responses, errors, auth, versioning
+   - Something users RUN --> output format, flags, modes, error handling
+   - Something users READ --> structure, tone, depth, flow
+   - Something being ORGANIZED --> criteria, grouping, naming, exceptions
+3. Generate phase-specific gray areas -- not generic categories like "Architecture" or "UX", but concrete decisions for THIS phase
 
-**Architecture Decisions** (ask when the phase involves structural choices):
-- "How do you want to structure {component}? Option A is {description}. Option B is {description}. Research suggests {recommendation} because {reason}."
-- "Should {component} be {approach A} or {approach B}? Here's the tradeoff: {tradeoff}."
-- "Where should {functionality} live? In {location A} or {location B}?"
+**Examples by domain:**
 
-**Technology Choices** (ask when the phase involves library/tool selection):
-- "For {capability}, research found these options: {option A} ({pros}), {option B} ({pros}). Which direction do you want to go?"
-- "The research recommends {library} for {task}. Does that work for you, or do you have a preference?"
-- "Should we use {existing pattern in codebase} or switch to {alternative}?"
+For "Post Feed" (visual feature):
+- Layout style -- Cards vs list vs timeline? Information density?
+- Loading behavior -- Infinite scroll or pagination? Pull to refresh?
+- Content ordering -- Chronological, algorithmic, or user choice?
+- Post metadata -- What info per post? Timestamps, reactions, author?
 
-**UX Decisions** (ask when the phase involves user-facing behavior):
-- "When the user {action}, what should happen? Options: {behavior A} or {behavior B}."
-- "How should {feature} handle errors? Silently retry, show a message, or both?"
-- "What's the priority: {quality A} or {quality B}? (e.g., speed vs. completeness)"
+For "CLI for database backups" (command-line tool):
+- Output format -- JSON, table, or plain text? Verbosity levels?
+- Flag design -- Short flags, long flags, or both? Required vs optional?
+- Progress reporting -- Silent, progress bar, or verbose logging?
+- Error recovery -- Fail fast, retry, or prompt for action?
 
-**Scope Decisions** (ask when the phase could grow):
-- "This phase could include {optional feature}. Include it now or defer to a later phase?"
-- "The research suggests {enhancement}. Is that in scope for this phase or should we keep it simple?"
-- "If we run out of budget on this phase, what's the one thing that MUST work?"
+For "Organize photo library" (organization task):
+- Grouping criteria -- By date, location, faces, or events?
+- Duplicate handling -- Keep best, keep all, or prompt each time?
+- Naming convention -- Original names, dates, or descriptive?
+- Folder structure -- Flat, nested by year, or by category?
 
-**Priority Decisions** (ask when there are tradeoffs):
-- "If we can't do everything, rank these: {item A}, {item B}, {item C}."
-- "What matters more for this phase: {priority A} or {priority B}?"
+**Do NOT ask about:** Technical implementation, Architecture choices, Performance concerns -- Claude handles these based on research and best practices.
 
-#### Discussion Flow
+### 6. Present Gray Areas for Selection
 
-1. Start with the most impactful decisions (architecture and technology)
-2. Move to behavior and UX decisions
-3. End with scope and priority decisions
-4. Summarize all decisions and ask for confirmation
+Present the identified gray areas and let the user select which to discuss:
+
+```
+Phase {N}: {phase_name}
+Domain: {what this phase delivers}
+
+We'll clarify HOW to implement this.
+(New capabilities belong in other phases.)
+
+Which areas do you want to discuss?
+  [ ] {Gray area 1} -- {1-2 questions this covers}
+  [ ] {Gray area 2} -- {1-2 questions this covers}
+  [ ] {Gray area 3} -- {1-2 questions this covers}
+  [ ] {Gray area 4} -- {1-2 questions this covers}
+```
+
+Do NOT include a "skip" or "you decide" option at this level. The user ran this command to discuss -- give them real choices. Include "You decide" as an option for individual questions within an area when reasonable (captures Claude discretion).
+
+### 7. Deep-Dive Each Selected Area
+
+For each selected gray area, conduct a focused discussion:
+
+**Ask 2-4 questions per area**, offering concrete choices (not abstract options). Each answer should inform the next question.
+
+After the questions for an area, check: "More questions about {area}, or move to next?"
+- If "More" --> ask 2-4 more, then check again
+- If "Next" --> proceed to next selected area
+
+After all areas are complete: "That covers {list areas}. Ready to create context?"
 
 **Mode behavior:**
-- **guided**: Ask every relevant question. Explain tradeoffs in detail. Confirm each group.
-- **balanced**: Ask the most important questions. Briefly explain tradeoffs. Confirm at the end.
+- **guided**: Ask 4 questions per area. Explain tradeoffs in detail. Confirm each area.
+- **balanced**: Ask 2-3 questions per area. Briefly explain tradeoffs. Confirm at the end.
 - **yolo**: Ask only decisions that can't be made without user input. Skip anything with a clear default.
 
-### 5. Summarize Decisions
+### Scope Guardrail (CRITICAL)
 
-After all questions are answered, present a decision summary:
+**The phase boundary from ROADMAP.md is FIXED.** Discussion clarifies HOW to implement what's scoped, not WHETHER to add new capabilities.
+
+If the user suggests a new capability that could be its own phase:
+```
+"{Feature X} would be a new capability -- that's its own phase.
+I'll note it for later.
+
+For now, let's focus on {phase domain}."
+```
+
+Capture deferred ideas to `.planning/todos.json` (under a "deferred_ideas" key or similar) so they are not lost. Also include them in the "Deferred Ideas" section of CONTEXT.md when written.
+
+### 8. Summarize Decisions
+
+After all questions are answered, present a decision summary. Sections should match the gray areas that were discussed (not fixed categories):
 
 ```
  DECISION SUMMARY — Phase {N}: {phase_name}
  ─────────────────────────────────────────────────────────────
 
- Architecture:
+ {Gray Area 1}:
    1. {decision} — {brief rationale}
    2. {decision} — {brief rationale}
 
- Technology:
+ {Gray Area 2}:
    3. {decision} — {brief rationale}
-   4. {decision} — {brief rationale}
 
- UX / Behavior:
+ {Gray Area 3}:
+   4. {decision} — {brief rationale}
    5. {decision} — {brief rationale}
 
- Scope:
-   6. {decision} — {brief rationale}
+ Claude's Discretion:
+   {areas where user said "you decide"}
 
  Priority:
-   7. If constrained, focus on: {priority list}
+   If constrained, focus on: {priority list}
 ```
 
 Ask: **"Does this capture your decisions correctly? Anything to add or change?"**
 
 Iterate until the user approves.
 
-### 6. Write CONTEXT.md
+### 9. Write CONTEXT.md
 
-Create `.planning/phases/{N}-{name}/CONTEXT.md` with the locked decisions.
+Create `.planning/phases/{N}-{name}/CONTEXT.md` with the locked decisions. If updating an existing CONTEXT.md, merge new decisions with existing ones.
 
 Format:
 
@@ -156,45 +215,37 @@ Format:
 
 ---
 
-## Phase Goal
+## Phase Boundary
 
-{phase_goal}
+{Clear statement of what this phase delivers — the scope anchor from ROADMAP.md}
 
 ---
 
-## Decisions
+## Implementation Decisions
 
-### Architecture
+### {Gray Area 1 that was discussed}
 
 | # | Decision | Rationale | Alternatives Considered |
 |---|----------|-----------|------------------------|
 | 1 | {decision} | {rationale} | {alternatives} |
 | 2 | {decision} | {rationale} | {alternatives} |
 
-### Technology
+### {Gray Area 2 that was discussed}
 
 | # | Decision | Rationale | Alternatives Considered |
 |---|----------|-----------|------------------------|
 | 3 | {decision} | {rationale} | {alternatives} |
 
-### UX / Behavior
+### Claude's Discretion
 
-| # | Decision | Rationale | Alternatives Considered |
-|---|----------|-----------|------------------------|
-| 4 | {decision} | {rationale} | {alternatives} |
+{Areas where user said "you decide" — note that Claude has flexibility here}
 
-### Scope
+---
 
-| # | Decision | Rationale |
-|---|----------|-----------|
-| 5 | {decision} | {rationale} |
+## Specific Ideas
 
-### Priority Order
-
-If constrained, focus areas in this order:
-1. {highest priority}
-2. {second priority}
-3. {third priority}
+{Any particular references, examples, or "I want it like X" moments from discussion}
+{If none: "No specific requirements — open to standard approaches"}
 
 ---
 
@@ -212,13 +263,20 @@ If constrained, focus areas in this order:
 
 ---
 
+## Deferred Ideas
+
+{Ideas that came up but belong in other phases. Don't lose them.}
+{If none: "None — discussion stayed within phase scope"}
+
+---
+
 ## Notes
 
 {Any additional context from the discussion}
 {Edge cases mentioned, future considerations flagged}
 ```
 
-### 7. Update State
+### 10. Update State
 
 Update `.planning/state.json`:
 - Set `current_phase` to the phase number (if not already set)
@@ -234,14 +292,14 @@ Update `.planning/STATE.md` to reflect the new status.
 
 Update ROADMAP.md phase status to "discussed" (in the phase list table).
 
-### 8. Sync CLAUDE.md
+### 11. Sync CLAUDE.md
 
 Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
 1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
 2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
 3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
 
-### 9. What's Next
+### 12. What's Next
 
 ```
 ---

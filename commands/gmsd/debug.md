@@ -1,25 +1,180 @@
 # GMSD: Debug
 
-You are the GMSD debugging orchestrator. You investigate and fix verification gaps using a systematic, collaborative approach. Debuggers use scientific method — hypothesize, test, confirm — and share root cause discoveries with peers to prevent duplicate investigation.
+You are the GMSD debugging orchestrator. You operate in two modes:
 
-**Usage:** `/gmsd:debug {N}` where `{N}` is the phase number.
+1. **Verification gap mode** — Investigate and fix verification gaps for a specific phase (existing GMSD behavior)
+2. **General-purpose debug mode** — Investigate arbitrary user-reported issues using the scientific method (GSD behavior)
+
+Debuggers use scientific method — hypothesize, test, confirm — and share root cause discoveries with peers to prevent duplicate investigation.
+
+**Usage:**
+- `/gmsd:debug {N}` — Debug verification gaps for phase N
+- `/gmsd:debug some issue description` — General-purpose debugging
+- `/gmsd:debug` — Check for active sessions or ask what to debug
 
 ---
 
 ## Instructions
 
-### Step 0: Parse Arguments and Load State
+### Step 0: Parse Arguments and Detect Mode
 
-1. Extract the phase number `{N}` from the user's command. If no phase number is provided, read `.planning/state.json` and use `current_phase`. If `current_phase` is null, ask the user which phase to debug.
-2. Read `.planning/state.json` for current state.
-3. Read `.planning/config.json` for mode and team settings.
-4. Validate that verification has been run:
-   - Read `.planning/phases/{N}-{name}/VERIFICATION.md`
-   - If VERIFICATION.md does not exist, inform: "No verification report found. Run `/gmsd:verify-work {N}` first to identify gaps."
-   - If the recommendation is "PROCEED" with no gaps, inform: "All verification criteria passed. No gaps to debug."
-5. Store start timestamp.
+1. Read `.planning/state.json` for current state.
+2. Read `.planning/config.json` for mode and team settings.
+3. Store start timestamp.
 
-### Step 1: Read Gap Context
+**Mode detection:**
+
+- **If argument is a number** (e.g., `3`): Treat as a phase number. Check if `.planning/phases/{N}-{name}/VERIFICATION.md` exists and has gaps.
+  - If VERIFICATION.md exists with gaps --> **verification gap mode** (Step 1a)
+  - If VERIFICATION.md does not exist --> inform: "No verification report found for phase {N}. Run `/gmsd:verify-work {N}` first to identify gaps. Or describe your issue to use general-purpose debug mode."
+  - If VERIFICATION.md has recommendation "PROCEED" with no gaps --> inform: "All verification criteria passed for phase {N}. No gaps to debug. If you have a different issue, describe it."
+- **If argument is text** (not a number, e.g., "login page crashes on submit"): --> **general-purpose debug mode** (Step 1b)
+- **If no argument provided**: Check for active debug sessions in `.planning/debug/*.md`. If sessions exist, list them and let user pick one to resume or describe a new issue. If no sessions exist, check `current_phase` from state.json and ask: "What would you like to debug? Provide a phase number for verification gaps, or describe the issue."
+
+---
+
+## General-Purpose Debug Mode
+
+This mode is used when the user describes symptoms rather than providing a phase number with verification gaps.
+
+### Step 1b: Check Active Debug Sessions
+
+```bash
+ls .planning/debug/*.md 2>/dev/null | head -5
+```
+
+If active sessions exist AND the user did not provide a description:
+- List sessions with status, current hypothesis, and next action
+- User picks a number to resume OR describes a new issue
+
+If the user provided a description or chose "new issue": continue to Step 2b.
+
+### Step 2b: Gather Symptoms
+
+If the user already provided a description in the argument, use it as the starting point. Then gather additional details:
+
+1. **Expected behavior** — What should happen?
+2. **Actual behavior** — What happens instead?
+3. **Error messages** — Any errors? (paste or describe)
+4. **Timeline** — When did this start? Did it ever work?
+5. **Reproduction** — How do you trigger it?
+
+After gathering, confirm: "Ready to investigate. Here's what I understand: {summary}. Correct?"
+
+### Step 3b: Spawn Debugger Agent
+
+Create the debug session file directory if needed:
+```bash
+mkdir -p .planning/debug
+```
+
+Generate a slug from the issue description (e.g., "login-page-crash").
+
+Spawn a debugger subagent (or team for complex issues):
+
+```
+Task(
+  prompt="You are a GMSD Debugger agent investigating an issue.
+
+  ## Issue: {slug}
+
+  **Summary:** {user's description}
+
+  ## Symptoms
+  - Expected: {expected}
+  - Actual: {actual}
+  - Errors: {errors}
+  - Timeline: {timeline}
+  - Reproduction: {reproduction}
+
+  ## Investigation Method
+
+  Use the scientific method:
+
+  ### Phase 1: Observe
+  - Read relevant code files based on the symptoms
+  - Reproduce the issue if possible
+  - Note exactly what is happening
+
+  ### Phase 2: Hypothesize
+  - Form 1-3 hypotheses about the root cause
+  - For each hypothesis, identify what evidence would confirm or deny it
+  - Prioritize: start with the most likely hypothesis
+
+  ### Phase 3: Test
+  - Read code, run tests, or check behavior to test each hypothesis
+  - Record findings — confirm or deny each hypothesis
+  - If all denied, form new hypotheses based on what you learned
+
+  ### Phase 4: Report
+  - Write findings to .planning/debug/{slug}.md
+  - Structure: ## Symptoms, ## Hypotheses Tested, ## Root Cause (or ## Checkpoint), ## Suggested Fix
+
+  ## Exit Conditions
+  Return with ONE of:
+  - **## ROOT CAUSE FOUND** — Include root cause, evidence, and suggested fix
+  - **## CHECKPOINT REACHED** — Need more info from user (specify what info is needed and why)
+  - **## INVESTIGATION INCONCLUSIVE** — List what was checked and eliminated, suggest manual steps"
+)
+```
+
+### Step 4b: Handle Agent Return
+
+**If `## ROOT CAUSE FOUND`:**
+- Display root cause and evidence summary
+- Offer options:
+  - "Fix now" — spawn a fix subagent or apply the suggested fix
+  - "Plan fix" — suggest `/gmsd:plan-phase --gaps` or manual planning
+  - "Manual fix" — done, user will fix it themselves
+
+**If `## CHECKPOINT REACHED`:**
+- Present checkpoint details to user
+- Get user's response to the specific question
+- Spawn a continuation agent with the debug session file and user's new info:
+  ```
+  Task(
+    prompt="Continue debugging {slug}. Prior investigation is in .planning/debug/{slug}.md.
+
+    ## Checkpoint Response
+    **Question was:** {checkpoint_question}
+    **User's answer:** {user_response}
+
+    Continue investigation from where it left off. Read the debug file first."
+  )
+  ```
+
+**If `## INVESTIGATION INCONCLUSIVE`:**
+- Show what was checked and eliminated
+- Offer options:
+  - "Continue investigating" — spawn new agent with additional context
+  - "Add more context" — gather more symptoms, spawn again
+  - "Manual investigation" — done, show what was eliminated
+
+### Step 5b: Update State and Present Results
+
+Update `.planning/state.json`:
+- Update `last_command` to `/gmsd:debug`
+- Update `last_updated` to current ISO timestamp
+- Append to `history`:
+```json
+{
+  "command": "/gmsd:debug {slug}",
+  "timestamp": "{ISO timestamp}",
+  "result": "Debug session: {ROOT CAUSE FOUND | CHECKPOINT | INCONCLUSIVE}. {brief summary}"
+}
+```
+
+Update `.planning/STATE.md`.
+
+Sync CLAUDE.md (same as Step 9 below).
+
+---
+
+## Verification Gap Mode
+
+This mode is used when the user provides a phase number and that phase has VERIFICATION.md with gaps.
+
+### Step 1a: Read Gap Context
 
 1. Read `.planning/phases/{N}-{name}/VERIFICATION.md` in full. Extract:
    - All gaps with their severity, criterion, description, and suggested fix

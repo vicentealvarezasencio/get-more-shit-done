@@ -298,7 +298,213 @@ This ensures:
 - Historical research decisions are preserved across milestones
 - Commands like `/gmsd:plan-phase` can check `workflow.research` to know whether to spawn researchers
 
-### 10. Reference Previous Milestone Artifacts
+**If "Research first":**
+
+Run the research pipeline. Spawn 3-4 parallel researcher agents tailored to the NEW milestone features. Each researcher focuses on one dimension of the new capabilities being added.
+
+```
+ ┌─────────────────────────────────────────────────────────────────┐
+ │  GMSD Research — Milestone {new_number}                         │
+ └─────────────────────────────────────────────────────────────────┘
+
+ Spawning researchers for new milestone features...
+   → Stack additions for {new features}
+   → Feature patterns for {new features}
+   → Architecture integration for {new features}
+   → Pitfalls when adding {new features}
+```
+
+Create research directory:
+```bash
+mkdir -p .planning/research
+```
+
+Spawn 4 parallel researcher subagents. Each researcher receives:
+- The PROJECT.md context (existing validated capabilities — do NOT re-research these)
+- The new milestone goals and target features
+- A specific research dimension (Stack, Features, Architecture, Pitfalls)
+- Instructions to write findings to `.planning/research/{DIMENSION}.md`
+
+**Research dimensions for milestone context:**
+
+| Dimension | Question | Focus |
+|-----------|----------|-------|
+| Stack | What stack additions/changes are needed for the new features? | New libraries, version updates, integration points, what NOT to add |
+| Features | How do the target features typically work? Expected behavior? | Table stakes vs differentiators, complexity, dependencies on existing code |
+| Architecture | How do the new features integrate with existing architecture? | Integration points, new components, data flow changes, build order |
+| Pitfalls | Common mistakes when adding these features to existing systems? | Warning signs, prevention strategies, which phase should address each |
+
+**Important:** Research is scoped to NEW capabilities only. Existing validated features from PROJECT.md are provided as context but should not be re-researched.
+
+After all researchers complete, spawn a synthesizer agent to merge findings into `.planning/research/SUMMARY.md`.
+
+Display key findings from SUMMARY.md:
+
+```
+ Research Complete
+ ─────────────────────────────────────────────────────────────
+
+ Stack additions: {from SUMMARY.md}
+ Feature table stakes: {from SUMMARY.md}
+ Watch out for: {from SUMMARY.md}
+
+ Files: .planning/research/
+```
+
+**If "Skip research":** Continue to Step 10.
+
+### 10. Define Requirements
+
+Gather and formalize requirements for the new milestone into `.planning/REQUIREMENTS.md`.
+
+```
+ ┌─────────────────────────────────────────────────────────────────┐
+ │  GMSD Requirements — Milestone {new_number}                     │
+ └─────────────────────────────────────────────────────────────────┘
+```
+
+**Load context:**
+- Read PROJECT.md: core value, current milestone goals, validated requirements (what exists)
+- If research exists: read `.planning/research/FEATURES.md` and extract feature categories
+- If `.planning/CARRIED-CONTEXT.md` exists: incorporate carried-forward items
+
+**If research exists — present features by category:**
+
+```
+ ## {Category 1}
+ Table stakes: Feature A, Feature B
+ Differentiators: Feature C, Feature D
+ Research notes: {any relevant notes}
+
+ ## {Category 2}
+ ...
+```
+
+**If no research — gather through conversation:**
+Ask: "What are the main things users need to do with {new features}?"
+Clarify, probe for related capabilities, group into categories.
+
+**Scope each category** — For each category, ask which features are in this milestone:
+
+**Mode behavior:**
+- **guided**: Present each category individually with explanations. Ask for each feature.
+- **balanced**: Present all categories at once with checkboxes. Ask for confirmation.
+- **yolo**: Auto-include all table stakes, ask only about differentiators.
+
+Track responses:
+- Selected → this milestone's requirements
+- Unselected table stakes → future milestone
+- Unselected differentiators → out of scope
+
+**Identify gaps:**
+Ask: "Any requirements the research missed? Features specific to your vision?"
+- If yes: capture additions
+- If no: proceed
+
+**Generate `.planning/REQUIREMENTS.md`:**
+
+Create the file with:
+- **Milestone v{new_version} Requirements** grouped by category (checkboxes, REQ-IDs)
+- **Future Requirements** (deferred features)
+- **Out of Scope** (explicit exclusions with reasoning)
+- **Traceability** section (empty — filled by roadmap step)
+
+**REQ-ID format:** `[CATEGORY]-[NUMBER]` (e.g., AUTH-01, NOTIF-02). Continue numbering from existing requirements if any carry over.
+
+**Requirement quality criteria:**
+- **Specific and testable:** "User can reset password via email link" (not "Handle password reset")
+- **User-centric:** "User can X" (not "System does Y")
+- **Atomic:** One capability per requirement (not "User can login and manage profile")
+- **Independent:** Minimal dependencies on other requirements
+
+**Present full requirements for confirmation:**
+
+```
+ Milestone v{new_version} Requirements
+ ─────────────────────────────────────────────────────────────
+
+ {Category 1}
+ - [ ] CAT1-01: User can do X
+ - [ ] CAT1-02: User can do Y
+
+ {Category 2}
+ - [ ] CAT2-01: User can do Z
+
+ Does this capture what you're building? (yes / adjust)
+```
+
+**Mode behavior:**
+- **guided / balanced**: Ask for confirmation. If "adjust", return to scoping.
+- **yolo**: Auto-approve and proceed.
+
+### 11. Create Roadmap
+
+Create `.planning/ROADMAP.md` with the phase structure for this milestone.
+
+```
+ ┌─────────────────────────────────────────────────────────────────┐
+ │  GMSD Roadmap — Milestone {new_number}                          │
+ └─────────────────────────────────────────────────────────────────┘
+```
+
+**Determine starting phase number:** Read previous milestone history to find the last phase number. Continue from there (e.g., if the previous milestone ended at phase 5, this milestone starts at phase 6).
+
+**Generate roadmap from requirements:**
+1. Derive phases from THIS MILESTONE's requirements only
+2. Map every requirement to exactly one phase
+3. Derive 2-5 success criteria per phase (observable user behaviors)
+4. Validate 100% requirement coverage
+5. Order phases by dependency (foundations first, integration last)
+
+**If carry-forward items or tech debt exist:** Incorporate them into appropriate phases or create a dedicated cleanup phase.
+
+**Present the proposed roadmap:**
+
+```
+ Proposed Roadmap
+ ─────────────────────────────────────────────────────────────
+
+ {N} phases | {X} requirements mapped | All covered
+
+ | # | Phase          | Goal                | Requirements | Success Criteria |
+ |---|----------------|---------------------|--------------|------------------|
+ | {N} | {Name}      | {Goal}              | {REQ-IDs}    | {count}          |
+
+ Phase Details:
+
+ Phase {N}: {Name}
+   Goal: {goal}
+   Requirements: {REQ-IDs}
+   Success criteria:
+     1. {criterion}
+     2. {criterion}
+```
+
+**Mode behavior:**
+- **guided**: Walk through each phase, explain the rationale, ask for approval phase-by-phase.
+- **balanced**: Present full roadmap, ask: "Does this roadmap structure work? (approve / adjust / review full file)"
+- **yolo**: Auto-approve and proceed.
+
+If "adjust": Get user's notes, revise the roadmap, re-present. Loop until approved.
+
+**Write ROADMAP.md** with:
+- Phase list table (number, name, description, status, dependencies)
+- Phase details (goal, scope, requirements, success criteria for each)
+- Execution order
+
+**Update REQUIREMENTS.md traceability section** — Fill in the phase mapping for every requirement.
+
+**Update STATE.md** — Set current position to the first new phase.
+
+Also create phase directories:
+```
+.planning/phases/
+├── {N}-{phase-name}/
+├── {N+1}-{phase-name}/
+├── ...
+```
+
+### 12. Reference Previous Milestone Artifacts
 
 Check for artifacts from the previous milestone that may be useful:
 
@@ -323,101 +529,56 @@ Check for artifacts from the previous milestone that may be useful:
  Location: .planning/CARRIED-CONTEXT.md
 ```
 
-### 11. Update STATE.md
+### 13. Sync CLAUDE.md
 
-Update `.planning/STATE.md` to reflect the new milestone state:
+Regenerate the project's `.claude/CLAUDE.md` to reflect the new milestone state:
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, REQUIREMENTS.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
+3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
 
-```markdown
-# Project State
-
-**Project:** {project_name}
-**Version:** {new_version}
-**Milestone:** {new_milestone_number} — {milestone_name}
-**Current Phase:** None (no phases defined yet)
-**Status:** Milestone initialized
-**Mode:** {mode}
-**Last Updated:** {ISO timestamp}
-
-## Milestone History
-
-| Milestone | Version | Name              | Status    |
-|-----------|---------|-------------------|-----------|
-| {prev}    | {v}     | {prev_name}       | complete  |
-| {new}     | {v}     | {new_name}        | active    |
-```
-
-### 12. Display Confirmation
+### 14. Display Confirmation
 
 Show the result:
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
- │  New Milestone Started Successfully                              │
+ │  New Milestone Initialized Successfully                          │
  └─────────────────────────────────────────────────────────────────┘
 
  Milestone {new_number} — v{new_version}: {milestone_name}
 
- Updated files:
-   - .planning/PROJECT.md    (new milestone appended, previous marked complete)
-   - .planning/config.json   (version bumped to {new_version})
-   - .planning/state.json    (reset for new milestone)
-   - .planning/STATE.md      (updated)
+ | Artifact       | Location                    |
+ |----------------|-----------------------------|
+ | Project        | .planning/PROJECT.md        |
+ | Config         | .planning/config.json       |
+ | Research       | .planning/research/         |
+ | Requirements   | .planning/REQUIREMENTS.md   |
+ | Roadmap        | .planning/ROADMAP.md        |
+ | State          | .planning/state.json        |
 
- Referenced artifacts:
+ {N} phases | {X} requirements | Ready to build
+
+ Referenced artifacts from previous milestone:
    {list of previous milestone artifacts found, or "None"}
 ```
 
-### 13. What's Next
+### 15. What's Next
 
-Determine the recommendation based on context:
-
-**If the project would benefit from fresh research (major scope change, new domain):**
+Present routing based on the roadmap that was just created. The first phase of the new milestone is the recommended next step.
 
 ```
 ---
 ## What's Next
 
-Current: Milestone {new_number} — v{new_version}: {milestone_name} | Phase: none | Mode: {mode}
+Current: Milestone {new_number} — v{new_version}: {milestone_name} | Phase {first_phase_number}: {first_phase_name} | Mode: {mode}
 
 **Recommended next step:**
---> /gmsd:new-project — Run fresh project research for the new milestone scope. This will regenerate the roadmap and phase structure.
+--> /gmsd:discuss-phase {first_phase_number} — Gather context and clarify approach for phase {first_phase_number}
 
 **Other options:**
-- /gmsd:add-phase — Manually define phases for the new milestone
-- /gmsd:progress — Check full project status
+- /gmsd:plan-phase {first_phase_number} — Skip discussion, plan directly
+- /gmsd:progress — View full project status dashboard
 - /gmsd:settings — Adjust configuration for the new milestone
 ```
 
-**If the milestone is a continuation (same domain, incremental scope):**
-
-```
----
-## What's Next
-
-Current: Milestone {new_number} — v{new_version}: {milestone_name} | Phase: none | Mode: {mode}
-
-**Recommended next step:**
---> /gmsd:add-phase — Define the phases for this milestone. You can add them one at a time.
-
-**Other options:**
-- /gmsd:new-project — Run full project research if the scope has changed significantly
-- /gmsd:progress — Check full project status
-- /gmsd:settings — Adjust configuration for the new milestone
-```
-
-**If there are carry-forward items or tech debt to address:**
-
-```
----
-## What's Next
-
-Current: Milestone {new_number} — v{new_version}: {milestone_name} | Phase: none | Mode: {mode}
-
-**Recommended next step:**
---> /gmsd:add-phase — Define phases for this milestone. Consider addressing {count} carry-forward item(s) and {count} tech debt item(s) in your phase definitions.
-
-**Other options:**
-- /gmsd:new-project — Run full project research for major scope changes
-- /gmsd:progress — Check full project status
-- /gmsd:settings — Adjust configuration for the new milestone
-```
+**Tip:** Suggest `/clear` first for a fresh context window before starting phase work.

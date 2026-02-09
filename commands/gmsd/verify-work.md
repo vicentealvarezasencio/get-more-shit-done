@@ -20,9 +20,9 @@ Output: {phase}-UAT.md tracking all test results. If issues found: diagnosed gap
 </objective>
 
 <execution_context>
-@workflows/verify-work.md
-@templates/UAT.md
-@workflows/diagnose-issues.md
+@~/.claude/get-more-shit-done/workflows/verify-work.md
+@~/.claude/get-more-shit-done/templates/UAT.md
+@~/.claude/get-more-shit-done/workflows/diagnose-issues.md
 </execution_context>
 
 <context>
@@ -35,7 +35,7 @@ Phase: $ARGUMENTS (optional)
 </context>
 
 <process>
-Execute the verify-work workflow from @workflows/verify-work.md end-to-end.
+Execute the verify-work workflow from @~/.claude/get-more-shit-done/workflows/verify-work.md end-to-end.
 Preserve all workflow gates (session management, test presentation, diagnosis, fix planning, routing).
-After completion, sync CLAUDE.md per workflows/claude-md-sync.md.
+After completion, sync CLAUDE.md per ~/.claude/get-more-shit-done/workflows/claude-md-sync.md.
 </process>

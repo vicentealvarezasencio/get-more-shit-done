@@ -79,6 +79,56 @@ Cross-reference PROJECT.md requirements:
 2. **Should-have requirements:** For each should-have, check if it was addressed. Flag any dropped should-haves that were not explicitly acknowledged by the user.
 3. **Research risks:** Read `.planning/RESEARCH.md` (if exists) and check if any identified risks materialized but were not addressed.
 
+### Step 2d: Integration Check (Subagent)
+
+After completing the main audit analysis, spawn an integration checker subagent to verify cross-phase wiring and end-to-end flows. This catches issues that only appear when phases interact.
+
+1. **Prepare phase context:** For each phase in the milestone, collect:
+   - Phase number, name, goal
+   - Key outputs (files created, APIs added, components built) from PLAN.md and VERIFICATION.md
+   - Exports and interfaces that other phases depend on
+
+2. **Spawn integration checker:**
+
+```
+Task(
+  prompt="You are a GMSD integration checker. Verify cross-phase wiring and E2E flows for the current milestone.
+
+MILESTONE: {milestone_name} (v{version})
+
+PHASES:
+{For each phase: number, name, goal, key outputs, and status}
+
+CHECK:
+1. Cross-phase data flow — do outputs from phase N feed correctly into phase N+1? Look for mismatched interfaces, missing handoffs, or broken data pipelines between phases.
+2. API contracts — are interfaces between phases consistent? Check that consumers use the same signatures and types that producers export.
+3. E2E user flows — can a user complete key workflows end-to-end across multiple phases? Trace the main user journeys through all relevant phases.
+4. Shared resources — are shared files, configs, environment variables, and database schemas consistent across phases that use them?
+
+READ these files for evidence:
+- .planning/ROADMAP.md
+- .planning/phases/*/PLAN.md
+- .planning/phases/*/{phase}-VERIFICATION.md (where available)
+- .planning/phases/*/{phase}-SUMMARY.md (where available)
+- Relevant source files mentioned in phase outputs
+
+OUTPUT: Return a structured report with:
+- List of integration gaps found, each with severity (critical/major/minor) and a suggested fix
+- List of verified cross-phase connections that are working correctly
+- List of E2E flows checked and their status (complete/broken/partial)
+- Overall integration score: X/Y checks passed",
+  description="Integration check for milestone {milestone_name}"
+)
+```
+
+3. **Collect integration results:** Parse the subagent's return for:
+   - Integration gaps (with severity and suggested fixes)
+   - Verified connections
+   - E2E flow statuses
+   - Overall integration score
+
+4. **Merge into audit:** Incorporate the integration checker's findings into the audit report. Integration gaps at `critical` severity should influence the verdict toward GAPS or FAIL.
+
 ### Step 3: Generate AUDIT.md
 
 Write `.planning/AUDIT.md` with the complete audit report:
@@ -138,6 +188,34 @@ Write `.planning/AUDIT.md` with the complete audit report:
 
 ---
 
+## Cross-Phase Integration
+
+{Results from the integration checker subagent (Step 2d):}
+
+**Integration Score:** {passed_checks}/{total_checks} checks passed
+
+### Integration Gaps
+
+{If no integration gaps found:}
+> No cross-phase integration gaps identified.
+
+{If gaps exist:}
+| #  | Gap Description                        | Severity | Phases Affected      | Suggested Fix                      |
+|----|----------------------------------------|----------|----------------------|------------------------------------|
+| 1  | {gap from integration checker}         | {level}  | Phase {N} -> {M}     | {suggested fix}                    |
+| 2  | {gap}                                  | {level}  | Phase {N} -> {M}     | {suggested fix}                    |
+...
+
+### E2E Flow Status
+
+| #  | Flow Name                              | Status   | Notes                                   |
+|----|----------------------------------------|----------|-----------------------------------------|
+| 1  | {user flow name}                       | complete | {flows end-to-end successfully}         |
+| 2  | {user flow name}                       | partial  | {breaks at step X}                      |
+...
+
+---
+
 ## Unaddressed Risks
 
 {If no RESEARCH.md or no unaddressed risks:}
@@ -188,11 +266,11 @@ Write `.planning/AUDIT.md` with the complete audit report:
 
 ### Step 4: Determine Verdict
 
-Apply the following verdict logic:
+Apply the following verdict logic, incorporating both the success criteria audit AND the integration checker results:
 
-- **PASS** -- All must-have success criteria are "met". No unmet must-haves. All phases are verified (or explicitly skipped by user). Only minor accepted gaps remain.
-- **GAPS** -- Some success criteria are "partial" or a small number are "unmet", but the issues are fixable with targeted work. Must-haves may have partial coverage. Some phases may be unverified.
-- **FAIL** -- Multiple must-have success criteria are "unmet". Core milestone intent is not achieved. Major architectural or functional gaps exist.
+- **PASS** -- All must-have success criteria are "met". No unmet must-haves. All phases are verified (or explicitly skipped by user). Only minor accepted gaps remain. No critical integration gaps. All E2E flows are complete.
+- **GAPS** -- Some success criteria are "partial" or a small number are "unmet", but the issues are fixable with targeted work. Must-haves may have partial coverage. Some phases may be unverified. OR: critical integration gaps exist between phases, or E2E flows are partially broken.
+- **FAIL** -- Multiple must-have success criteria are "unmet". Core milestone intent is not achieved. Major architectural or functional gaps exist. OR: multiple critical integration gaps make the system non-functional across phases.
 
 Write the verdict into the AUDIT.md header.
 

@@ -13,22 +13,33 @@ You are the GMSD gap closure planner. You create new phases to close gaps identi
 1. Read `.planning/state.json` for current state.
 2. Read `.planning/config.json` for version, project name, mode, and settings.
 3. Read `.planning/ROADMAP.md` for the full phase list and current statuses.
-4. **Read `.planning/AUDIT.md`** for the audit results.
-   - **If AUDIT.md does not exist:** Show an error and stop:
+4. **Read the audit file** for the audit results. Use the following search order:
+   - First, try to read `.planning/AUDIT.md` (fixed filename).
+   - If `.planning/AUDIT.md` does not exist, use Glob to search for `.planning/v*-MILESTONE-AUDIT.md` and `.planning/*-MILESTONE-AUDIT.md` (versioned filenames from audit-milestone).
+   - If multiple versioned audit files are found, use the most recent one (highest version number, or latest modification time).
+   - Show the user which audit file was found: `Using audit file: {path_to_audit_file}`
+   - **If NO audit file is found (neither fixed nor versioned):** Show an error and stop:
      ```
      ## Error: No Audit Found
 
-     `.planning/AUDIT.md` does not exist. You must run a milestone audit before planning gap closure.
+     No audit file found. Searched for:
+     - `.planning/AUDIT.md`
+     - `.planning/v*-MILESTONE-AUDIT.md`
+     - `.planning/*-MILESTONE-AUDIT.md`
+
+     You must run a milestone audit before planning gap closure.
 
      --> Run `/gmsd:audit-milestone` first to identify gaps.
      ```
      Do not proceed further.
+
+   Store the resolved audit file path as `audit_file` for use in subsequent steps.
 5. Read `.planning/PROJECT.md` for the milestone success criteria and requirements.
 6. Store the current timestamp.
 
 ### Step 1: Extract Gaps from Audit
 
-Parse `.planning/AUDIT.md` and extract all actionable gaps:
+Parse the resolved audit file (`audit_file` from Step 0) and extract all actionable gaps:
 
 1. **Unmet success criteria** -- criteria with status "unmet" or "partial"
 2. **Unmet must-have requirements** -- must-haves that are not fully satisfied
@@ -50,7 +61,9 @@ Show the extracted gaps:
  |  GMSD Gap Closure -- Milestone {milestone_number}: {milestone_name}  |
  +---------------------------------------------------------------------+
 
- Gaps extracted from AUDIT.md:
+ Audit file: {audit_file}
+
+ Gaps extracted from audit:
    - {unmet_count} unmet success criteria
    - {partial_count} partial success criteria
    - {must_have_count} unmet must-have requirements
@@ -206,9 +219,9 @@ This phase was created by `/gmsd:plan-milestone-gaps` to close gaps identified i
 {No decisions yet -- to be populated during discuss-phase or plan-phase.}
 ```
 
-### Step 5: Update AUDIT.md
+### Step 5: Update Audit File
 
-Append a "Gap Resolution Plan" section to `.planning/AUDIT.md`:
+Append a "Gap Resolution Plan" section to the resolved audit file (`audit_file` from Step 0):
 
 ```markdown
 ---

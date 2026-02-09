@@ -42,7 +42,7 @@ Determine what is currently happening based on `state.json`:
 
 If `phase_status` is already `"paused"`, inform the user:
 ```
-Work is already paused. A HANDOFF.md exists from the previous pause.
+Work is already paused. A .continue-here.md exists from the previous pause.
 To resume: `/gmsd:resume-work`
 To re-pause with updated context: confirm and I'll overwrite the existing handoff.
 ```
@@ -92,9 +92,41 @@ Team shut down. {completed_count}/{total_count} tasks were completed before paus
 {in_progress_count} task(s) were in progress and will need to be resumed.
 ```
 
-### Step 3: Create HANDOFF.md
+### Step 2b: WIP Git Commit
 
-Write `.planning/HANDOFF.md`:
+After team shutdown (or immediately if no team is active), create a WIP commit to capture all in-flight changes.
+
+**If mode is `guided`:**
+
+Show the user what will happen and ask for confirmation:
+
+> **WIP Commit**
+>
+> There are uncommitted changes that should be preserved as a WIP commit:
+>
+> `git add -A && git commit -m "gmsd: WIP — pausing phase {current_phase} ({phase_name})"`
+>
+> **Proceed with WIP commit?** (yes / skip)
+
+Wait for user response. If "skip", proceed without committing.
+
+**If mode is `balanced` or `yolo`:**
+Auto-commit without confirmation:
+```bash
+git add -A && git commit -m "gmsd: WIP — pausing phase {current_phase} ({phase_name})"
+```
+
+If there are no changes to commit (clean working tree), skip this step silently.
+
+If the commit fails for any reason, note it in the handoff but continue — the handoff file itself is more important than the WIP commit.
+
+### Step 3: Create Handoff Files
+
+Write the full handoff content to `.planning/phases/{N}-{name}/.continue-here.md` (the GSD convention, primary location), and write a brief pointer file to `.planning/HANDOFF.md` for backward compatibility.
+
+#### 3a: Write `.planning/phases/{N}-{name}/.continue-here.md`
+
+This is the primary handoff file containing all context needed to resume.
 
 ```markdown
 # GMSD Session Handoff
@@ -232,6 +264,18 @@ This will read this handoff document and route you to the right place.
 - Verification: `.planning/phases/{N}-{name}/VERIFICATION.md` (if exists)
 ```
 
+#### 3b: Write `.planning/HANDOFF.md` (pointer file)
+
+Write a brief pointer file to `.planning/HANDOFF.md` for backward compatibility with `/gmsd:resume-work`:
+
+```markdown
+# Session Paused
+
+See: .planning/phases/{N}-{name}/.continue-here.md
+```
+
+This pointer file allows `resume-work` to discover the phase-specific handoff even if it does not know which phase was active.
+
 ### Step 4: Update State
 
 Update `.planning/state.json`:
@@ -249,7 +293,7 @@ Append to `history`:
 {
   "command": "/gmsd:pause-work",
   "timestamp": "{ISO timestamp}",
-  "result": "Session paused. Phase {N} was {phase_status}. {team_context_if_applicable}. Handoff saved to HANDOFF.md."
+  "result": "Session paused. Phase {N} was {phase_status}. {team_context_if_applicable}. Handoff saved to .planning/phases/{N}-{name}/.continue-here.md."
 }
 ```
 
@@ -267,7 +311,9 @@ Team `{team_name}` has been shut down.
 - {completed_count}/{total_count} tasks completed
 - {remaining_count} tasks will resume on next session
 
-Handoff saved to: `.planning/HANDOFF.md`
+Handoff saved to:
+- **Primary:** `.planning/phases/{N}-{name}/.continue-here.md`
+- **Pointer:** `.planning/HANDOFF.md`
 
 **To resume:** `/gmsd:resume-work`
 

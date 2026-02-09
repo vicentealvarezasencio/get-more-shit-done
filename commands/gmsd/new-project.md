@@ -396,21 +396,128 @@ Iterate until the user approves.
 
 Update PROJECT.md with finalized milestones.
 
-### 9. Create Roadmap
+### 9. Define Requirements
+
+Synthesize research findings, user input, and milestone scope into formal requirements. Create `.planning/REQUIREMENTS.md` as a separate artifact that defines "done" for the first milestone.
+
+**If auto mode:** Auto-include all table stakes features plus features explicitly mentioned in the provided document. Auto-approve without asking the user. Skip the per-category scoping and confirmation gates.
+
+```
+ ┌─────────────────────────────────────────────────────────────────┐
+ │  GMSD Requirements — v1                                          │
+ └─────────────────────────────────────────────────────────────────┘
+```
+
+**Load context:**
+- Read PROJECT.md: core value, stated constraints, scope boundaries
+- If research exists: read `.planning/RESEARCH.md` (or `.planning/research/FEATURES.md` if structured research was run) and extract feature categories
+
+**If research exists — present features by category:**
+
+```
+ Here are the features for {domain}:
+
+ ## {Category 1}
+ Table stakes: Feature A, Feature B
+ Differentiators: Feature C, Feature D
+ Research notes: {any relevant notes}
+
+ ## {Category 2}
+ ...
+```
+
+**If no research — gather through conversation:**
+Ask: "What are the main things users need to be able to do?"
+For each capability: ask clarifying questions, probe for related capabilities, group into categories.
+
+**Scope each category:**
+
+For each category, ask which features are in v1:
+- Present features as a checklist with brief descriptions
+- Allow multi-select
+
+Track responses:
+- Selected features → v1 requirements (must-have)
+- Unselected table stakes → v2 requirements (should-have, users expect these)
+- Unselected differentiators → out of scope (nice-to-have or deferred)
+
+**Identify gaps:**
+Ask: "Any requirements the research missed? Features specific to your vision?"
+- If yes: capture additions
+- If no: proceed
+
+**Validate core value:**
+Cross-check requirements against Core Value from PROJECT.md. If gaps detected, surface them.
+
+**Generate `.planning/REQUIREMENTS.md`:**
+
+Create the file with categorized requirements using the GMSD requirements template format:
+
+- **v1 Requirements** grouped by category with checkboxes and REQ-IDs
+  - Must-have: Core features that define the product
+  - Should-have: Important features expected by users
+  - Nice-to-have: Enhancements that can slip if needed
+- **v2 Requirements** (deferred to future milestone)
+- **Out of Scope** (explicit exclusions with reasoning)
+- **Traceability** section (empty — filled when roadmap is created)
+
+**REQ-ID format:** `[CATEGORY]-[NUMBER]` (e.g., AUTH-01, CONT-02, SOCL-03)
+
+**Requirement quality criteria:**
+- **Specific and testable:** "User can reset password via email link" (not "Handle password reset")
+- **User-centric:** "User can X" (not "System does Y")
+- **Atomic:** One capability per requirement (not "User can login and manage profile")
+- **Independent:** Minimal dependencies on other requirements
+
+Reject vague requirements. Push for specificity:
+- "Handle authentication" → "User can log in with email/password and stay logged in across sessions"
+- "Support sharing" → "User can share post via link that opens in recipient's browser"
+
+**Present full requirements for confirmation (interactive mode only):**
+
+```
+ v1 Requirements
+ ─────────────────────────────────────────────────────────────
+
+ Authentication
+ - [ ] AUTH-01: User can create account with email/password
+ - [ ] AUTH-02: User can log in and stay logged in across sessions
+ - [ ] AUTH-03: User can log out from any page
+
+ {Category 2}
+ - [ ] CAT2-01: User can do X
+ - [ ] CAT2-02: User can do Y
+
+ ... (full list)
+
+ Does this capture what you're building? (yes / adjust)
+```
+
+If "adjust": return to scoping and iterate.
+
+**Link requirements to roadmap phases** — After the roadmap is created in Step 10, the traceability section will be populated. Each requirement maps to exactly one phase. Unmapped requirements indicate a roadmap gap.
+
+### 10. Create Roadmap
 
 **If auto mode:** Auto-approve the roadmap without asking the user. Skip the iteration/feedback loop and commit directly.
 
 For the first milestone, create a phase breakdown. Create `.planning/ROADMAP.md` using the template.
 
-Determine 3-7 phases based on the milestone scope. Each phase should be:
+Determine 3-7 phases based on the milestone scope and requirements from Step 9. Each phase should be:
 - Self-contained (can be planned and executed independently, respecting dependencies)
 - Roughly similar in size (avoid one huge phase and several tiny ones)
 - Ordered by dependency (foundations first, integration last)
+- Mapped to specific requirements from REQUIREMENTS.md
 
 Create the ROADMAP.md with:
 - Phase list table (number, name, description, status, dependencies)
-- Phase details (goal, scope, complexity, dependencies for each)
+- Phase details (goal, scope, complexity, requirements covered, success criteria for each)
 - Execution order (sequential dependencies, parallel opportunities, execution graph)
+
+**After creating the roadmap, update REQUIREMENTS.md:**
+- Fill in the Traceability section with phase mappings for every v1 requirement
+- Verify 100% coverage (every v1 requirement mapped to a phase)
+- Report any unmapped requirements as warnings
 
 Also create the phase directories:
 ```
@@ -421,7 +528,7 @@ Also create the phase directories:
 ├── ...
 ```
 
-### 10. Update State
+### 11. Update State
 
 Update state.json:
 ```json
@@ -435,19 +542,19 @@ Update state.json:
 
 Add to history:
 ```json
-{ "command": "/gmsd:new-project", "timestamp": "{ISO timestamp}", "result": "Project initialized with {N} phases in milestone 1" }
+{ "command": "/gmsd:new-project", "timestamp": "{ISO timestamp}", "result": "Project initialized with {N} phases, {X} requirements in milestone 1" }
 ```
 
 Update STATE.md to reflect current state.
 
-### 11. Sync CLAUDE.md
+### 12. Sync CLAUDE.md
 
 Regenerate the project's `.claude/CLAUDE.md` to reflect current state:
-1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
+1. Read all project artifacts (.planning/state.json, config.json, PROJECT.md, REQUIREMENTS.md, ROADMAP.md, current phase CONTEXT.md, PLAN.md, design tokens, todos, tech debt)
 2. Generate a concise, actionable CLAUDE.md summary following the template in workflows/claude-md-sync.md
 3. Write to `.claude/CLAUDE.md` (create .claude/ directory if needed)
 
-### 12. What's Next
+### 13. What's Next
 
 ```
 ---
