@@ -2,7 +2,7 @@
 name: gmsd:setup-tokens
 description: Initialize design token system with colors, typography, and spacing
 allowed-tools: [Read, Write, Edit, AskUserQuestion, Glob, Grep, WebFetch, Task]
-agent: gmsd-ui-researcher (for inspiration), gmsd-ui-designer (for coordination)
+agent: ui-researcher (for inspiration), ui-designer (for coordination)
 ---
 
 <objective>
@@ -11,6 +11,7 @@ Establish the foundational design token system for the project. Gather user pref
 
 <context>
 @~/.claude/get-more-shit-done/ui-design/templates/design-tokens.json
+@~/.claude/get-more-shit-done/ui-design/templates/style-presets.json
 @~/.claude/get-more-shit-done/ui-design/references/design-systems.md
 @.planning/design/UI-CONTEXT.md (if exists)
 @.planning/UI-INSPIRATION.md (if exists)
@@ -33,8 +34,37 @@ Every question must offer:
 
 <process>
 
+<step name="style_direction">
+## Choose Your Starting Point
+
+Before diving into individual token choices, offer a style direction:
+
+**Question: How would you like to set up your design tokens?**
+
+Options:
+- **Precision Dark** — Engineered for focus: high-contrast dark interface for speed and deep work. *Inspired by Linear, Vercel, Raycast.* (Indigo primary, Inter font, compact 14px base, small radii, minimal shadows)
+- **Soft Bloom** — Warm and welcoming: rounded, friendly aesthetic that feels human. *Inspired by Airbnb, Notion, Cal.com.* (Rose/coral primary, DM Sans font, spacious 16px base, large radii, soft shadows)
+- **Sharp Finance** — Polished authority: clean professional system that communicates trust. *Inspired by Stripe, Mercury, Plaid.* (Blue primary, system fonts, standard 16px base, crisp radii, defined shadows)
+- **Bold Punch** — Unapologetically loud: thick borders, hard shadows, maximum visual impact. *Inspired by Gumroad, Figma, Lemon Squeezy.* (Fuchsia primary, Space Grotesk font, chunky 16px base, hard-offset shadows, 2px borders)
+- **Customize from scratch** — Full control over every token (7 questions)
+
+If user picks a preset:
+1. Read the matching preset from `~/.claude/get-more-shit-done/ui-design/templates/style-presets.json`
+2. Deep-merge preset tokens over the base template from `~/.claude/get-more-shit-done/ui-design/templates/design-tokens.json`
+3. Generate the complete `.planning/design/design-tokens.json`
+4. Show a summary of what was generated
+5. Ask: **"Want to adjust anything?"**
+   - If yes: ask ONLY about what they want to change (targeted, not all 7 questions)
+   - If no: proceed to record_decisions step
+
+If user picks "Customize from scratch":
+- Continue with the existing flow (check_existing → inspiration_check → gather_colors → gather_typography → gather_spacing → gather_effects)
+</step>
+
 <step name="check_existing">
 ## Check Existing Context
+
+**Note:** This step is skipped if user selected a style preset above.
 
 1. **Check for UI-CONTEXT.md:**
    - Platform constraints (iOS needs specific colors, web is flexible)
@@ -215,7 +245,7 @@ Generate:
 
 If UI-CONTEXT.md specifies a component library:
 
-**For shadcn/gmsd:**
+**For shadcn/ui:**
 - Use CSS variable naming convention
 - Align with their color semantics
 - Match their radius/spacing scale
@@ -413,6 +443,7 @@ Decisions:    .planning/design/UI-DECISIONS.md
 - `.planning/design/design-tokens.json` exists with valid W3C format
 - All core token categories defined (colors, typography, spacing, borders, shadows)
 - Tokens align with user's stated preferences or smart defaults
+- Style preset applied correctly (if selected)
 - Decisions documented in UI-DECISIONS.md
 - State file updated
 </success_criteria>
