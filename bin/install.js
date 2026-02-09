@@ -61,15 +61,13 @@ function log(message, color = 'reset') {
 
 function showBanner() {
   console.log(`
-${colors.magenta}┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   ${colors.bright}Get More Shit Done${colors.reset}${colors.magenta}  — Team-Based Orchestration for Claude Code  │
-│   ${colors.dim}v${VERSION}${colors.reset}${colors.magenta}                                                         │
-│                                                                 │
-│   Research  ──►  Design  ──►  Plan  ──►  Execute  ──►  Verify  │
-│                    ${colors.dim}Coordinated Agent Teams${colors.reset}${colors.magenta}                      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘${colors.reset}
+${colors.magenta} ██████╗ ███╗   ███╗███████╗██████╗
+██╔════╝ ████╗ ████║██╔════╝██╔══██╗
+██║  ███╗██╔████╔██║███████╗██║  ██║
+██║   ██║██║╚██╔╝██║╚════██║██║  ██║
+╚██████╔╝██║ ╚═╝ ██║███████║██████╔╝
+ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═════╝${colors.reset}
+  ${colors.dim}Team-Based Orchestration for Claude Code  v${VERSION}${colors.reset}
 `);
 }
 
