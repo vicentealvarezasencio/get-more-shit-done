@@ -1,6 +1,6 @@
 # UI-CONTEXT.md Template
 
-Template for `.planning/UI-CONTEXT.md` — captures platform constraints, project context, and design inspiration.
+Template for `.planning/design/UI-CONTEXT.md` — captures platform constraints, project context, and design inspiration.
 
 ---
 

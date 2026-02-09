@@ -11,9 +11,9 @@ Document, manage, and extract reusable UI patterns from screen specifications. P
 </objective>
 
 <context>
-@.planning/UI-PATTERNS.md (if exists)
-@.planning/screens/*.md (required for extraction)
-@.planning/COMPONENTS.md (if exists)
+@.planning/design/UI-PATTERNS.md (if exists)
+@.planning/design/screens/*.md (required for extraction)
+@.planning/design/COMPONENTS.md (if exists)
 </context>
 
 <ux_principles>
@@ -288,7 +288,7 @@ Options:
 <step name="write_patterns_file">
 ## Write Patterns File
 
-Create or update `.planning/UI-PATTERNS.md`:
+Create or update `.planning/design/UI-PATTERNS.md`:
 
 ```markdown
 # UI Patterns
@@ -372,9 +372,9 @@ Added:
   ✓ PAT-07: Form Section (2 screens)
 
 Files Updated:
-  ✓ .planning/UI-PATTERNS.md
-  ✓ .planning/screens/SCR-04-dashboard.md (pattern reference)
-  ✓ .planning/screens/SCR-05-items.md (pattern reference)
+  ✓ .planning/design/UI-PATTERNS.md
+  ✓ .planning/design/screens/SCR-04-dashboard.md (pattern reference)
+  ✓ .planning/design/screens/SCR-05-items.md (pattern reference)
   [...]
 
 ───────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # UI-SPEC.md Template
 
-Template for `.planning/UI-SPEC.md` — the master UI specification document that serves as the central hub for all UI documentation.
+Template for `.planning/design/UI-SPEC.md` — the master UI specification document that serves as the central hub for all UI documentation.
 
 ---
 
@@ -29,10 +29,10 @@ Template for `.planning/UI-SPEC.md` — the master UI specification document tha
 
 ## Design System
 
-**Tokens:** `.planning/design-tokens.json`
-**Components:** `.planning/COMPONENTS.md`
-**Patterns:** `.planning/UI-PATTERNS.md`
-**Decisions:** `.planning/UI-DECISIONS.md`
+**Tokens:** `.planning/design/design-tokens.json`
+**Components:** `.planning/design/COMPONENTS.md`
+**Patterns:** `.planning/design/UI-PATTERNS.md`
+**Decisions:** `.planning/design/UI-DECISIONS.md`
 
 ### Target Stack
 
@@ -238,7 +238,7 @@ Error:      #EF4444  ████       ─────────────�
 
 **Legend:** ● = Used, ○ = Not used
 
-See: `.planning/COMPONENTS.md` for full specifications.
+See: `.planning/design/COMPONENTS.md` for full specifications.
 
 ---
 
@@ -298,7 +298,7 @@ Generic:  ░░░░░░░░░░░░░░░░  Not exported
 | SCR-03: Dashboard | Stitch | [Figma link] | 2024-01-17 | - |
 | SCR-04: Settings | - | - | - | - |
 
-See: `.planning/UI-REGISTRY.md` for detailed tracking.
+See: `.planning/design/UI-REGISTRY.md` for detailed tracking.
 
 ---
 
@@ -313,7 +313,7 @@ Reusable UI patterns documented in this project:
 | PAT-03 | Settings Sections | SCR-04 |
 | PAT-04 | Empty State | SCR-03, SCR-05 |
 
-See: `.planning/UI-PATTERNS.md` for full pattern documentation.
+See: `.planning/design/UI-PATTERNS.md` for full pattern documentation.
 
 ---
 
@@ -321,12 +321,12 @@ See: `.planning/UI-PATTERNS.md` for full pattern documentation.
 
 ### Related Documents
 
-- **Context:** `.planning/UI-CONTEXT.md` — Platform, constraints, inspiration
-- **Components:** `.planning/COMPONENTS.md` — Full component specs
-- **Patterns:** `.planning/UI-PATTERNS.md` — Reusable patterns
-- **Tokens:** `.planning/design-tokens.json` — Design tokens (W3C format)
-- **Decisions:** `.planning/UI-DECISIONS.md` — Design decision log
-- **Registry:** `.planning/UI-REGISTRY.md` — Realization tracking
+- **Context:** `.planning/design/UI-CONTEXT.md` — Platform, constraints, inspiration
+- **Components:** `.planning/design/COMPONENTS.md` — Full component specs
+- **Patterns:** `.planning/design/UI-PATTERNS.md` — Reusable patterns
+- **Tokens:** `.planning/design/design-tokens.json` — Design tokens (W3C format)
+- **Decisions:** `.planning/design/UI-DECISIONS.md` — Design decision log
+- **Registry:** `.planning/design/UI-REGISTRY.md` — Realization tracking
 
 ### External Resources
 

@@ -10,8 +10,8 @@ View, search, and add to the UI design decisions log. Track the rationale behind
 </objective>
 
 <context>
-@.planning/UI-DECISIONS.md (if exists)
-@.planning/UI-CONTEXT.md (if exists)
+@.planning/design/UI-DECISIONS.md (if exists)
+@.planning/design/UI-CONTEXT.md (if exists)
 </context>
 
 <ux_principles>
@@ -120,7 +120,7 @@ Inter was chosen because:
 - Open source, freely available
 
 ### Affected Files
-- .planning/design-tokens.json (typography.fontFamily.sans)
+- .planning/design/design-tokens.json (typography.fontFamily.sans)
 - All screen specifications
 - All exports
 
@@ -237,7 +237,7 @@ Options:
 <step name="decision_format">
 ## Decision File Format
 
-`.planning/UI-DECISIONS.md`:
+`.planning/design/UI-DECISIONS.md`:
 
 ```markdown
 # UI Design Decisions
@@ -269,7 +269,7 @@ The original blue was too light against white backgrounds,
 failing WCAG AA contrast requirements for text.
 
 ### Affected Files
-- .planning/design-tokens.json
+- .planning/design/design-tokens.json
 - Requires export refresh for all services
 
 ---
@@ -309,7 +309,7 @@ Added: DEC-011: [Title]
 Category: [category]
 Impact: [level]
 
-File Updated: .planning/UI-DECISIONS.md
+File Updated: .planning/design/UI-DECISIONS.md
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```

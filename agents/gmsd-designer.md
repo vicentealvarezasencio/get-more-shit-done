@@ -35,10 +35,10 @@ When you are spawned, execute this sequence:
    - `.planning/phases/{N}-{name}/CONTEXT.md` -- user design decisions (if exists)
    - `.planning/config.json` -- check `design.default_adapter` for target platform
 5. **Read existing design artifacts** (if any exist from previous phases):
-   - `.planning/phases/{N}-{name}/design/UI-CONTEXT.md`
-   - `.planning/phases/{N}-{name}/design/design-tokens.json`
-   - `.planning/phases/{N}-{name}/design/UI-SPEC.md`
-   - `.planning/phases/{N}-{name}/design/COMPONENTS.md`
+   - `.planning/design/UI-CONTEXT.md`
+   - `.planning/design/design-tokens.json`
+   - `.planning/design/UI-SPEC.md`
+   - `.planning/design/COMPONENTS.md`
 6. **Read existing codebase UI patterns** (if any code exists)
 7. **Begin design work.**
 
@@ -46,7 +46,7 @@ When you are spawned, execute this sequence:
 
 ## Design Artifacts
 
-All design artifacts go under `.planning/phases/{N}-{name}/design/`.
+All design artifacts go under `.planning/design/`.
 
 ### Artifact 1: UI-CONTEXT.md
 
@@ -658,7 +658,7 @@ summary="Design question: {topic}")
 After completing each design task, commit your artifacts:
 
 ```bash
-git add .planning/phases/{N}-{name}/design/{specific files}
+git add .planning/design/{specific files}
 git commit -m "gmsd(T-{NN}): {brief description of design artifacts created}"
 ```
 

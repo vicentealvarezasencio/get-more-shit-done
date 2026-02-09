@@ -15,8 +15,8 @@ Generate UI specifications from the CODE-ANALYSIS.md created by `/gmsd:scan`. Au
 @~/.claude/get-more-shit-done/ui-design/templates/screen.md
 @~/.claude/get-more-shit-done/ui-design/templates/component.md
 @~/.claude/get-more-shit-done/ui-design/templates/ui-spec.md
-@.planning/CODE-ANALYSIS.md (required)
-@.planning/design-tokens.json (if exists)
+@.planning/design/CODE-ANALYSIS.md (required)
+@.planning/design/design-tokens.json (if exists)
 </context>
 
 <ux_principles>
@@ -46,13 +46,13 @@ Generate UI specifications from the CODE-ANALYSIS.md created by `/gmsd:scan`. Au
 
 1. **Require CODE-ANALYSIS.md:**
    ```
-   if not exists .planning/CODE-ANALYSIS.md:
+   if not exists .planning/design/CODE-ANALYSIS.md:
      "No code analysis found. Run /gmsd:scan first."
      exit
    ```
 
 2. **Check for existing specs:**
-   - If `.planning/UI-SPEC.md` exists, ask:
+   - If `.planning/design/UI-SPEC.md` exists, ask:
      - "Enhance existing specs with analysis"
      - "Regenerate all specs (overwrites)"
      - "Generate only missing specs"
@@ -114,9 +114,9 @@ Create master spec document:
 
 ## Design System
 
-**Tokens:** `.planning/design-tokens.json`
-**Components:** `.planning/COMPONENTS.md`
-**Analysis:** `.planning/CODE-ANALYSIS.md`
+**Tokens:** `.planning/design/design-tokens.json`
+**Components:** `.planning/design/COMPONENTS.md`
+**Analysis:** `.planning/design/CODE-ANALYSIS.md`
 
 ### Target Stack
 
@@ -139,7 +139,7 @@ Transform component inventory from analysis:
 # Component Inventory
 
 > Auto-generated from code analysis
-> Source: .planning/CODE-ANALYSIS.md
+> Source: .planning/design/CODE-ANALYSIS.md
 
 ## Overview
 
@@ -174,7 +174,7 @@ Total: [N] components across [N] categories
 
 For each screen in CODE-ANALYSIS.md, create full 10-section spec:
 
-**File:** `.planning/screens/SCR-XX-[name].md`
+**File:** `.planning/design/screens/SCR-XX-[name].md`
 
 ```markdown
 # SCR-XX: [Screen Name]
@@ -376,10 +376,10 @@ Sections requiring review:
 git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLANNING=true
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
-    git add .planning/UI-SPEC.md
-    git add .planning/COMPONENTS.md
-    git add .planning/UI-REGISTRY.md
-    git add .planning/screens/*.md
+    git add .planning/design/UI-SPEC.md
+    git add .planning/design/COMPONENTS.md
+    git add .planning/design/UI-REGISTRY.md
+    git add .planning/design/screens/*.md
 
     git commit -m "docs(ui): generate specs from code analysis
 

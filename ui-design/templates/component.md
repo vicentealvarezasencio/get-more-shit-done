@@ -1,6 +1,6 @@
 # Component Template
 
-Template for component specifications in `.planning/COMPONENTS.md`.
+Template for component specifications in `.planning/design/COMPONENTS.md`.
 
 ---
 

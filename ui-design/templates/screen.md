@@ -1,6 +1,6 @@
 # Screen Template
 
-Template for `.planning/screens/SCR-XX-[name].md` — individual screen specifications using the 10-section format.
+Template for `.planning/design/screens/SCR-XX-[name].md` — individual screen specifications using the 10-section format.
 
 ---
 

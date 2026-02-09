@@ -504,7 +504,7 @@ See template: `ui-design/templates/code-analysis.md`
 <memory_protocol>
 
 ## State File
-Maintains state in `.planning/ui-state/scanner-state.json`
+Maintains state in `.planning/design/ui-state/scanner-state.json`
 
 ## Incremental Scanning
 
@@ -550,9 +550,9 @@ Discovered:
   • Patterns:    [count] detected
 
 Files Created:
-  ✓ .planning/CODE-ANALYSIS.md
-  ✓ .planning/design-tokens.json
-  ✓ .planning/ui-state/scanner-state.json
+  ✓ .planning/design/CODE-ANALYSIS.md
+  ✓ .planning/design/design-tokens.json
+  ✓ .planning/design/ui-state/scanner-state.json
 
 Top Components (by usage):
   1. Button (47 uses)
@@ -564,7 +564,7 @@ Top Components (by usage):
 ## Next Steps
 
 Review the analysis:
-  `Read .planning/CODE-ANALYSIS.md`
+  `Read .planning/design/CODE-ANALYSIS.md`
 
 Generate specs from discovered components:
   `/gmsd:generate-specs`
@@ -593,9 +593,9 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually (NEVER git add . or git add -A)
-    git add .planning/CODE-ANALYSIS.md
-    git add .planning/design-tokens.json
-    git add .planning/ui-state/scanner-state.json
+    git add .planning/design/CODE-ANALYSIS.md
+    git add .planning/design/design-tokens.json
+    git add .planning/design/ui-state/scanner-state.json
 
     # Commit with comprehensive message
     git commit -m "docs(ui): scan codebase for {project}

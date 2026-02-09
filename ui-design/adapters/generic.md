@@ -690,7 +690,7 @@ After generating in any tool:
    - Status: Generated
    - Source: [Tool name]
    - Generated: 2026-01-19
-   - Prompt: .planning/ui-exports/generic-prompts.md#scr-01
+   - Prompt: .planning/design/ui-exports/generic-prompts.md#scr-01
    - Output: [links to files]
    - Deviations:
      - Tool added slight animation to button (acceptable)

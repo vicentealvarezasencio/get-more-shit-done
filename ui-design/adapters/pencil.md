@@ -841,8 +841,8 @@ Screen (1440x900, #F8FAFC)
 
 When `/gmsd:export pencil` is invoked:
 
-1. **Load specs** — Read screen specs from `.planning/screens/`
-2. **Load tokens** — Read `.planning/design-tokens.json`
+1. **Load specs** — Read screen specs from `.planning/design/screens/`
+2. **Load tokens** — Read `.planning/design/design-tokens.json`
 3. **Get/create .pen file** — Open or create design file
 4. **Setup variables** — Sync tokens to Pencil variables
 5. **Generate operations** — Transform specs to batch_design operations
@@ -853,7 +853,7 @@ When `/gmsd:export pencil` is invoked:
 ### Output Files
 
 ```
-.planning/ui-exports/
+.planning/design/ui-exports/
 ├── pencil-operations.md    # Generated operations log
 ├── pencil-handoff.md       # Handoff documentation
 └── handoffs/
@@ -864,7 +864,7 @@ When `/gmsd:export pencil` is invoked:
 ### State Updates
 
 ```json
-// .planning/ui-state/prompter-state.json
+// .planning/design/ui-state/prompter-state.json
 {
   "exports": {
     "pencil": {

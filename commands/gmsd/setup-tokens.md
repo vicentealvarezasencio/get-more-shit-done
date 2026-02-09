@@ -12,7 +12,7 @@ Establish the foundational design token system for the project. Gather user pref
 <context>
 @~/.claude/get-more-shit-done/ui-design/templates/design-tokens.json
 @~/.claude/get-more-shit-done/ui-design/references/design-systems.md
-@.planning/UI-CONTEXT.md (if exists)
+@.planning/design/UI-CONTEXT.md (if exists)
 @.planning/UI-INSPIRATION.md (if exists)
 </context>
 
@@ -42,7 +42,7 @@ Every question must offer:
    - Component library target (use their defaults as base)
 
 2. **Check for existing tokens:**
-   - `.planning/design-tokens.json` — Offer update vs. fresh start
+   - `.planning/design/design-tokens.json` — Offer update vs. fresh start
    - `tailwind.config.*` — Can extract existing theme
    - `figma-tokens.json` — Can import directly
 
@@ -56,7 +56,7 @@ If tokens exist:
  UI ► EXISTING TOKENS DETECTED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Found: .planning/design-tokens.json
+Found: .planning/design/design-tokens.json
 
 Colors:      [X] defined
 Typography:  [X] defined
@@ -232,7 +232,7 @@ If UI-CONTEXT.md specifies a component library:
 <step name="generate_tokens">
 ## Generate Design Tokens
 
-Create `.planning/design-tokens.json` in W3C Design Tokens format:
+Create `.planning/design/design-tokens.json` in W3C Design Tokens format:
 
 ```json
 {
@@ -334,7 +334,7 @@ Also generate dark mode values if requested:
 <step name="record_decisions">
 ## Record Decisions
 
-Append to `.planning/UI-DECISIONS.md`:
+Append to `.planning/design/UI-DECISIONS.md`:
 
 ```markdown
 ## DEC-001: Primary Color
@@ -354,7 +354,7 @@ Append to `.planning/UI-DECISIONS.md`:
 <step name="update_state">
 ## Update State
 
-Update `.planning/ui-state/coordinator-state.json`:
+Update `.planning/design/ui-state/coordinator-state.json`:
 ```json
 {
   "project_status": {
@@ -392,8 +392,8 @@ Effects
 
 Dark Mode:    [Yes / No]
 
-File:         .planning/design-tokens.json
-Decisions:    .planning/UI-DECISIONS.md
+File:         .planning/design/design-tokens.json
+Decisions:    .planning/design/UI-DECISIONS.md
 
 ───────────────────────────────────────────────────────
 
@@ -410,7 +410,7 @@ Decisions:    .planning/UI-DECISIONS.md
 </process>
 
 <success_criteria>
-- `.planning/design-tokens.json` exists with valid W3C format
+- `.planning/design/design-tokens.json` exists with valid W3C format
 - All core token categories defined (colors, typography, spacing, borders, shadows)
 - Tokens align with user's stated preferences or smart defaults
 - Decisions documented in UI-DECISIONS.md

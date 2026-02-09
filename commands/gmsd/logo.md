@@ -265,7 +265,7 @@ If `design-tokens.json` exists, reference brand colors:
 
 ```javascript
 // Read tokens
-const tokens = require('.planning/design-tokens.json');
+const tokens = require('.planning/design/design-tokens.json');
 const primary = tokens.color.primary.default.$value;
 const secondary = tokens.color.secondary?.default?.$value;
 
@@ -309,7 +309,7 @@ After completion:
 ```bash
 # Stage files
 git add .planning/LOGO-SPEC.md
-git add .planning/ui-exports/logo-prompts.md
+git add .planning/design/ui-exports/logo-prompts.md
 
 # Commit
 git commit -m "docs(ui): create logo specification for {app-name}

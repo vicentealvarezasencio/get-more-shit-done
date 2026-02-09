@@ -31,9 +31,9 @@ Before starting, verify ALL of these conditions:
    Extract: model_overrides (check for "executor" key)
 
 3. Design specs exist (if applicable)
-   IF .planning/phases/{N}-{name}/design/UI-SPEC.md exists:
+   IF .planning/design/UI-SPEC.md exists:
      has_design = true
-     design_path = .planning/phases/{N}-{name}/design/
+     design_path = .planning/design/
    ELSE:
      has_design = false
 
@@ -116,9 +116,9 @@ For each task in plan.tasks:
   {endfor}
 {ENDIF}
 {IF has_design AND task references a screen:}
-- Design spec: .planning/phases/{N}-{name}/design/screens/{screen_id}-{screen_name}.md
-- Design tokens: .planning/phases/{N}-{name}/design/design-tokens.json
-- Component inventory: .planning/phases/{N}-{name}/design/COMPONENTS.md
+- Design spec: .planning/design/screens/{screen_id}-{screen_name}.md
+- Design tokens: .planning/design/design-tokens.json
+- Component inventory: .planning/design/COMPONENTS.md
 {ENDIF}
 
 ## Instructions
@@ -129,7 +129,7 @@ Read these files to understand the context:
 - {file} -- {why this file is relevant}
 {endfor}
 {IF has_design:}
-- .planning/phases/{N}-{name}/design/UI-SPEC.md -- design system overview
+- .planning/design/UI-SPEC.md -- design system overview
 {ENDIF}
 
 ### Step 2: Implementation
@@ -292,7 +292,7 @@ PROJECT CONTEXT:
 - Git commit prefix: {config.git.commit_prefix}
 - Design specs available: {has_design}
 {IF has_design:}
-- Design directory: .planning/phases/{N}-{name}/design/
+- Design directory: .planning/design/
 {ENDIF}
 
 FILE OWNERSHIP MATRIX (from PLAN.md):

@@ -1,6 +1,6 @@
 # UI-REGISTRY.md Template
 
-Template for `.planning/UI-REGISTRY.md` — tracks the realization and implementation status of UI screens.
+Template for `.planning/design/UI-REGISTRY.md` — tracks the realization and implementation status of UI screens.
 
 ---
 

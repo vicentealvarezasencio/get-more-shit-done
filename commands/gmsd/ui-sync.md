@@ -10,12 +10,12 @@ Detect and resolve drift between UI specifications and realized implementations.
 </objective>
 
 <context>
-@.planning/UI-SPEC.md (if exists)
-@.planning/design-tokens.json (if exists)
-@.planning/screens/*.md (if exists)
-@.planning/COMPONENTS.md (if exists)
-@.planning/ui-exports/*.md (if exists)
-@.planning/UI-REGISTRY.md (if exists)
+@.planning/design/UI-SPEC.md (if exists)
+@.planning/design/design-tokens.json (if exists)
+@.planning/design/screens/*.md (if exists)
+@.planning/design/COMPONENTS.md (if exists)
+@.planning/design/ui-exports/*.md (if exists)
+@.planning/design/UI-REGISTRY.md (if exists)
 </context>
 
 <ux_principles>

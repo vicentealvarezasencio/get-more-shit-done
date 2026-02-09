@@ -10,10 +10,10 @@ Import design outputs from external tools (Stitch, V0, Figma) back into the spec
 </objective>
 
 <context>
-@.planning/UI-SPEC.md (if exists)
-@.planning/screens/*.md (if exists)
-@.planning/design-tokens.json (if exists)
-@.planning/COMPONENTS.md (if exists)
+@.planning/design/UI-SPEC.md (if exists)
+@.planning/design/screens/*.md (if exists)
+@.planning/design/design-tokens.json (if exists)
+@.planning/design/COMPONENTS.md (if exists)
 </context>
 
 <ux_principles>
@@ -288,13 +288,13 @@ If social login pattern is new:
 - Use "or sign up with" for registration
 ```
 
-Add to `.planning/UI-PATTERNS.md`.
+Add to `.planning/design/UI-PATTERNS.md`.
 </step>
 
 <step name="update_registry">
 ## Update Registry
 
-Update `.planning/UI-REGISTRY.md`:
+Update `.planning/design/UI-REGISTRY.md`:
 
 ```markdown
 ## Screen Realization Status
@@ -316,7 +316,7 @@ Update `.planning/UI-REGISTRY.md`:
 <step name="document_decision">
 ## Document Decisions
 
-Append to `.planning/UI-DECISIONS.md`:
+Append to `.planning/design/UI-DECISIONS.md`:
 
 ```markdown
 ## DEC-XXX: Social Login Addition
@@ -356,11 +356,11 @@ New Patterns:
   ✓ PAT-XX: Social Authentication
 
 Files Updated:
-  ✓ .planning/screens/SCR-01-login.md
-  ✓ .planning/design-tokens.json
-  ✓ .planning/UI-PATTERNS.md
-  ✓ .planning/UI-REGISTRY.md
-  ✓ .planning/UI-DECISIONS.md
+  ✓ .planning/design/screens/SCR-01-login.md
+  ✓ .planning/design/design-tokens.json
+  ✓ .planning/design/UI-PATTERNS.md
+  ✓ .planning/design/UI-REGISTRY.md
+  ✓ .planning/design/UI-DECISIONS.md
 
 ───────────────────────────────────────────────────────
 

@@ -202,7 +202,7 @@ Adapters consume:
 ### Output (To External Tools)
 
 ```
-.planning/ui-exports/
+.planning/design/ui-exports/
 ├── stitch-prompts.md      # Stitch-optimized prompts
 ├── v0-prompts.md          # V0-optimized prompts
 ├── figma-tokens.json      # Figma Variables export

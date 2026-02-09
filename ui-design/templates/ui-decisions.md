@@ -1,6 +1,6 @@
 # UI-DECISIONS.md Template
 
-Template for `.planning/UI-DECISIONS.md` — records design decisions and their rationale.
+Template for `.planning/design/UI-DECISIONS.md` — records design decisions and their rationale.
 
 ---
 
@@ -93,7 +93,7 @@ Need to select primary brand color for buttons, links, and interactive elements.
 ### Related
 
 - DEC-005: Dark mode strategy
-- `.planning/design-tokens.json`: color.primary.*
+- `.planning/design/design-tokens.json`: color.primary.*
 
 ---
 
@@ -145,7 +145,7 @@ Need to select a component library foundation for the UI. Requirements:
 
 ### Related
 
-- `.planning/COMPONENTS.md`: Component specifications
+- `.planning/design/COMPONENTS.md`: Component specifications
 - `src/components/ui/`: Implementation location
 
 ---

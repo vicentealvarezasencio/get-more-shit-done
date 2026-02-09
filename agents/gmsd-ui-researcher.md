@@ -426,7 +426,7 @@ Researcher: UI Researcher Agent
 <memory_protocol>
 
 ## State File
-Maintains state in `.planning/ui-state/researcher-state.json`:
+Maintains state in `.planning/design/ui-state/researcher-state.json`:
 
 ```json
 {
@@ -481,7 +481,7 @@ When completing research, return:
 Research Task: [what was investigated]
 
 Files Created/Updated:
-  ✓ .planning/UI-CONTEXT.md
+  ✓ .planning/design/UI-CONTEXT.md
   ✓ .planning/UI-INSPIRATION.md
   ✓ [other files]
 
@@ -520,7 +520,7 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually (NEVER git add . or git add -A)
-    git add .planning/UI-CONTEXT.md
+    git add .planning/design/UI-CONTEXT.md
     git add .planning/UI-INSPIRATION.md
     # ... other modified files
 

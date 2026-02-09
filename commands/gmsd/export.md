@@ -16,10 +16,10 @@ Transform UI specifications into service-optimized outputs. Generate prompts for
 @~/.claude/get-more-shit-done/ui-design/adapters/figma.md
 @~/.claude/get-more-shit-done/ui-design/adapters/pencil.md
 @~/.claude/get-more-shit-done/ui-design/adapters/generic.md
-@.planning/UI-SPEC.md (required)
-@.planning/screens/*.md (required)
-@.planning/COMPONENTS.md (recommended)
-@.planning/design-tokens.json (recommended)
+@.planning/design/UI-SPEC.md (required)
+@.planning/design/screens/*.md (required)
+@.planning/design/COMPONENTS.md (recommended)
+@.planning/design/design-tokens.json (recommended)
 </context>
 
 <ux_principles>
@@ -569,7 +569,7 @@ For each exported screen, create handoff brief:
 <step name="update_registry">
 ## Update Registry
 
-Update `.planning/UI-REGISTRY.md`:
+Update `.planning/design/UI-REGISTRY.md`:
 
 ```markdown
 ## Export History
@@ -585,7 +585,7 @@ Update `.planning/UI-REGISTRY.md`:
 <step name="update_state">
 ## Update State
 
-Update `.planning/ui-state/coordinator-state.json`:
+Update `.planning/design/ui-state/coordinator-state.json`:
 ```json
 {
   "project_status": {
@@ -630,8 +630,8 @@ Handoffs:
   ✓ handoffs/SCR-03-brief.md
 
 Files:
-  .planning/ui-exports/[service]-prompts.md (or pencil-operations.md)
-  .planning/ui-exports/handoffs/*.md
+  .planning/design/ui-exports/[service]-prompts.md (or pencil-operations.md)
+  .planning/design/ui-exports/handoffs/*.md
   designs/app.pen (for Pencil exports)
 
 ───────────────────────────────────────────────────────
@@ -688,7 +688,7 @@ Files:
 </process>
 
 <success_criteria>
-- Export files created in `.planning/ui-exports/`
+- Export files created in `.planning/design/ui-exports/`
 - All specified screens have corresponding prompts (or designs for Pencil)
 - Prompts follow service adapter best practices
 - Handoff documents generated for each screen

@@ -42,13 +42,13 @@ Reverse-engineer an existing codebase to extract a complete inventory of UI elem
 ## Check Prerequisites
 
 1. **Check for existing scan:**
-   - If `.planning/CODE-ANALYSIS.md` exists, ask:
+   - If `.planning/design/CODE-ANALYSIS.md` exists, ask:
      - "Rescan from scratch (overwrites previous)"
      - "Incremental scan (updates existing)"
      - "Cancel"
 
 2. **Check for existing specs:**
-   - If `.planning/UI-SPEC.md` exists, warn that this is a reverse workflow
+   - If `.planning/design/UI-SPEC.md` exists, warn that this is a reverse workflow
    - Suggest `/gmsd:ui-sync` instead if they want to analyze drift
 
 3. **Create .planning/ if needed:**
@@ -274,7 +274,7 @@ Document each pattern:
 <step name="write_analysis">
 ## Write CODE-ANALYSIS.md
 
-Create `.planning/CODE-ANALYSIS.md` with:
+Create `.planning/design/CODE-ANALYSIS.md` with:
 
 ```markdown
 # Code Analysis: [Project Name]
@@ -308,7 +308,7 @@ Create `.planning/CODE-ANALYSIS.md` with:
 <step name="write_tokens">
 ## Write Design Tokens
 
-Create `.planning/design-tokens.json`:
+Create `.planning/design/design-tokens.json`:
 - W3C Design Tokens format
 - Include source references in $description
 - Include dark mode variants in $extensions
@@ -317,7 +317,7 @@ Create `.planning/design-tokens.json`:
 <step name="update_state">
 ## Update Scanner State
 
-Create/update `.planning/ui-state/scanner-state.json`:
+Create/update `.planning/design/ui-state/scanner-state.json`:
 
 ```json
 {
@@ -358,9 +358,9 @@ Discovered:
   • Patterns:    6 detected
 
 Files Created:
-  ✓ .planning/CODE-ANALYSIS.md
-  ✓ .planning/design-tokens.json
-  ✓ .planning/ui-state/scanner-state.json
+  ✓ .planning/design/CODE-ANALYSIS.md
+  ✓ .planning/design/design-tokens.json
+  ✓ .planning/design/ui-state/scanner-state.json
 
 Top Components by Usage:
   1. Button (47 uses)
@@ -372,7 +372,7 @@ Top Components by Usage:
 ## ▶ Next Steps
 
 **Review the analysis:**
-  Read .planning/CODE-ANALYSIS.md
+  Read .planning/design/CODE-ANALYSIS.md
 
 **Generate specs from discovery:**
   /gmsd:generate-specs
@@ -397,9 +397,9 @@ After successful scan:
 git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLANNING=true
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
-    git add .planning/CODE-ANALYSIS.md
-    git add .planning/design-tokens.json
-    git add .planning/ui-state/scanner-state.json
+    git add .planning/design/CODE-ANALYSIS.md
+    git add .planning/design/design-tokens.json
+    git add .planning/design/ui-state/scanner-state.json
 
     git commit -m "docs(ui): scan codebase - [N] components, [N] screens
 
@@ -419,8 +419,8 @@ fi
 </process>
 
 <success_criteria>
-- `.planning/CODE-ANALYSIS.md` created with complete inventory
-- `.planning/design-tokens.json` created (if tokens found)
+- `.planning/design/CODE-ANALYSIS.md` created with complete inventory
+- `.planning/design/design-tokens.json` created (if tokens found)
 - All components cataloged with props and usage counts
 - All screens/routes mapped with layouts
 - Patterns documented with examples

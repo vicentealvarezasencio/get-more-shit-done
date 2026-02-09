@@ -1,6 +1,6 @@
 # CODE-ANALYSIS.md Template
 
-Template for `.planning/CODE-ANALYSIS.md` — the output document from `/gmsd:scan` that inventories all discovered UI elements from an existing codebase.
+Template for `.planning/design/CODE-ANALYSIS.md` — the output document from `/gmsd:scan` that inventories all discovered UI elements from an existing codebase.
 
 ---
 
@@ -376,7 +376,7 @@ RootLayout (app/layout.tsx)
 
 ### Token File Generated
 
-Full tokens exported to: `.planning/design-tokens.json`
+Full tokens exported to: `.planning/design/design-tokens.json`
 
 ---
 

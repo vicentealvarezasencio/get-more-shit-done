@@ -12,10 +12,10 @@ Provide an interactive design workflow using Pencil MCP. Unlike `/gmsd:export pe
 
 <context>
 @~/.claude/get-more-shit-done/ui-design/adapters/pencil.md
-@.planning/UI-SPEC.md (if exists)
-@.planning/screens/*.md (if exists)
-@.planning/COMPONENTS.md (if exists)
-@.planning/design-tokens.json (if exists)
+@.planning/design/UI-SPEC.md (if exists)
+@.planning/design/screens/*.md (if exists)
+@.planning/design/COMPONENTS.md (if exists)
+@.planning/design/design-tokens.json (if exists)
 </context>
 
 <subcommands>
@@ -164,7 +164,7 @@ Design tokens found. Sync to Pencil variables?
 If yes:
 ```javascript
 // Read tokens
-const tokens = readFile(".planning/design-tokens.json")
+const tokens = readFile(".planning/design/design-tokens.json")
 
 // Convert and set
 mcp__pencil__set_variables({
@@ -197,9 +197,9 @@ Load specifications:
 
 ```javascript
 // Read all specs
-const specs = glob(".planning/screens/*.md")
-const tokens = readFile(".planning/design-tokens.json")
-const components = readFile(".planning/COMPONENTS.md")
+const specs = glob(".planning/design/screens/*.md")
+const tokens = readFile(".planning/design/design-tokens.json")
+const components = readFile(".planning/design/COMPONENTS.md")
 ```
 </step>
 
@@ -315,14 +315,14 @@ Write or update spec files:
 Extracted from Pencil:
 
 Screens:
-  ✓ .planning/screens/SCR-01-login.md (updated)
-  ✓ .planning/screens/SCR-05-profile.md (created)
+  ✓ .planning/design/screens/SCR-01-login.md (updated)
+  ✓ .planning/design/screens/SCR-05-profile.md (created)
 
 Tokens:
-  ✓ .planning/design-tokens.json (updated)
+  ✓ .planning/design/design-tokens.json (updated)
 
 Components:
-  ✓ .planning/COMPONENTS.md (updated)
+  ✓ .planning/design/COMPONENTS.md (updated)
 
 ───────────────────────────────────────────────────────
 ```
@@ -500,7 +500,7 @@ Load spec and capture screenshot:
 
 ```javascript
 // Read spec
-const spec = readFile(".planning/screens/SCR-01-login.md")
+const spec = readFile(".planning/design/screens/SCR-01-login.md")
 
 // Get screenshot
 mcp__pencil__get_screenshot({
@@ -994,7 +994,7 @@ project-root/
 
 ## State Tracking
 
-Track Pencil session state in `.planning/ui-state/pencil-state.json`:
+Track Pencil session state in `.planning/design/ui-state/pencil-state.json`:
 
 ```json
 {

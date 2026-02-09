@@ -1,6 +1,6 @@
 # UI-PATTERNS.md Template
 
-Template for `.planning/UI-PATTERNS.md` — documents reusable UI patterns across the application.
+Template for `.planning/design/UI-PATTERNS.md` — documents reusable UI patterns across the application.
 
 ---
 

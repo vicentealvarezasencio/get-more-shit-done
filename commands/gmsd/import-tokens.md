@@ -9,8 +9,8 @@ Import design tokens from external design tools or token files. Transform to W3C
 </objective>
 
 <context>
-@.planning/design-tokens.json (if exists)
-@.planning/UI-CONTEXT.md (if exists)
+@.planning/design/design-tokens.json (if exists)
+@.planning/design/UI-CONTEXT.md (if exists)
 </context>
 
 <ux_principles>
@@ -274,7 +274,7 @@ Convert all tokens to W3C Design Tokens format:
 <step name="check_existing">
 ## Check Existing Tokens
 
-If `.planning/design-tokens.json` exists:
+If `.planning/design/design-tokens.json` exists:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -360,7 +360,7 @@ Ensure imported tokens have proper metadata:
 <step name="write_tokens">
 ## Write Tokens
 
-Write merged/replaced tokens to `.planning/design-tokens.json`
+Write merged/replaced tokens to `.planning/design/design-tokens.json`
 
 **Validation checks:**
 - Valid JSON structure
@@ -373,7 +373,7 @@ Write merged/replaced tokens to `.planning/design-tokens.json`
 <step name="update_decisions">
 ## Document Import Decision
 
-Append to `.planning/UI-DECISIONS.md`:
+Append to `.planning/design/UI-DECISIONS.md`:
 
 ```markdown
 ## DEC-XXX: Token Import
@@ -409,7 +409,7 @@ Tokens imported:
 
 Conflicts:    [N] resolved
 
-Output: .planning/design-tokens.json
+Output: .planning/design/design-tokens.json
 
 ───────────────────────────────────────────────────────
 
@@ -436,7 +436,7 @@ Output: .planning/design-tokens.json
 <success_criteria>
 - Tokens successfully parsed from source format
 - Tokens transformed to W3C format
-- `.planning/design-tokens.json` created or updated
+- `.planning/design/design-tokens.json` created or updated
 - No data loss during transformation
 - Conflicts resolved per user preference
 - Import documented in decisions

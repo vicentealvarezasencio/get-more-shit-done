@@ -10,9 +10,9 @@ Track which screens have been realized in external tools. Update the registry wi
 </objective>
 
 <context>
-@.planning/UI-SPEC.md (if exists)
-@.planning/UI-REGISTRY.md (if exists)
-@.planning/screens/*.md (if exists)
+@.planning/design/UI-SPEC.md (if exists)
+@.planning/design/UI-REGISTRY.md (if exists)
+@.planning/design/screens/*.md (if exists)
 </context>
 
 <ux_principles>
@@ -88,7 +88,7 @@ Options:
 <step name="update_registry">
 ## Update Registry
 
-Create or update `.planning/UI-REGISTRY.md`:
+Create or update `.planning/design/UI-REGISTRY.md`:
 
 ```markdown
 # UI Registry
@@ -157,7 +157,7 @@ Update the screen's spec file with realization info:
 <step name="update_state">
 ## Update Coordinator State
 
-Update `.planning/ui-state/coordinator-state.json`:
+Update `.planning/design/ui-state/coordinator-state.json`:
 
 ```json
 {
@@ -231,10 +231,10 @@ Overall Progress:
   Pending:   3/8
 
 Files Updated:
-  ✓ .planning/UI-REGISTRY.md
-  ✓ .planning/screens/SCR-01-login.md
-  ✓ .planning/screens/SCR-02-signup.md
-  ✓ .planning/ui-state/coordinator-state.json
+  ✓ .planning/design/UI-REGISTRY.md
+  ✓ .planning/design/screens/SCR-01-login.md
+  ✓ .planning/design/screens/SCR-02-signup.md
+  ✓ .planning/design/ui-state/coordinator-state.json
 
 ───────────────────────────────────────────────────────
 

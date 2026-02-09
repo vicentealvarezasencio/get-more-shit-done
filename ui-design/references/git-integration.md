@@ -122,9 +122,9 @@ docs(ui): add design decision DEC-003
 
 ```bash
 # Good - explicit staging
-git add .planning/UI-CONTEXT.md
-git add .planning/design-tokens.json
-git add .planning/screens/SCR-01-login.md
+git add .planning/design/UI-CONTEXT.md
+git add .planning/design/design-tokens.json
+git add .planning/design/screens/SCR-01-login.md
 
 # Bad - never do this
 git add .
@@ -235,8 +235,8 @@ fi
 # Agent: Do work...creates UI-CONTEXT.md, UI-SPEC.md
 
 # Agent: Stage files
-git add .planning/UI-CONTEXT.md
-git add .planning/UI-SPEC.md
+git add .planning/design/UI-CONTEXT.md
+git add .planning/design/UI-SPEC.md
 
 # Agent: Commit
 git commit -m "docs(ui): initialize UI context for MyApp

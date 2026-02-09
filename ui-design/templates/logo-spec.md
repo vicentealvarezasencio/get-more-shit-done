@@ -244,4 +244,4 @@ Minimum clear space around logo: [X]px or [X]% of logo height
 
 ## AI Generation Prompts
 
-See `.planning/ui-exports/logo-prompts.md` for copy-paste ready prompts.
+See `.planning/design/ui-exports/logo-prompts.md` for copy-paste ready prompts.

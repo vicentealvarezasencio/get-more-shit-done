@@ -94,9 +94,9 @@ Execute full `/gmsd:scan` process:
 5. **Pattern detection** — Reusable patterns
 
 **Output:**
-- `.planning/CODE-ANALYSIS.md`
-- `.planning/design-tokens.json`
-- `.planning/ui-state/scanner-state.json`
+- `.planning/design/CODE-ANALYSIS.md`
+- `.planning/design/design-tokens.json`
+- `.planning/design/ui-state/scanner-state.json`
 
 ```
 ✓ Framework: Next.js 14 (App Router)
@@ -156,7 +156,7 @@ Based on selected export target:
 
 ### For Stitch:
 ```
-.planning/ui-exports/
+.planning/design/ui-exports/
 ├── stitch-prompts.md        # Screen-by-screen prompts
 └── handoffs/
     └── design-handoff.md    # Project context for designers
@@ -164,7 +164,7 @@ Based on selected export target:
 
 ### For V0:
 ```
-.planning/ui-exports/
+.planning/design/ui-exports/
 ├── v0-prompts.md            # Code generation prompts
 └── handoffs/
     └── v0-setup.md          # Tech context
@@ -172,7 +172,7 @@ Based on selected export target:
 
 ### For Figma:
 ```
-.planning/ui-exports/
+.planning/design/ui-exports/
 ├── figma-tokens.json        # Figma Variables format
 ├── figma-setup.md           # Import instructions
 └── handoffs/
@@ -210,22 +210,22 @@ Patterns:     6 reusable patterns detected
  GENERATED FILES
 ─────────────────────────────────────────────────────────
 Analysis:
-  ✓ .planning/CODE-ANALYSIS.md
-  ✓ .planning/design-tokens.json
+  ✓ .planning/design/CODE-ANALYSIS.md
+  ✓ .planning/design/design-tokens.json
 
 Specifications:
-  ✓ .planning/UI-SPEC.md
-  ✓ .planning/COMPONENTS.md
-  ✓ .planning/UI-PATTERNS.md
-  ✓ .planning/UI-REGISTRY.md
-  ✓ .planning/screens/SCR-01-login.md
-  ✓ .planning/screens/SCR-02-signup.md
+  ✓ .planning/design/UI-SPEC.md
+  ✓ .planning/design/COMPONENTS.md
+  ✓ .planning/design/UI-PATTERNS.md
+  ✓ .planning/design/UI-REGISTRY.md
+  ✓ .planning/design/screens/SCR-01-login.md
+  ✓ .planning/design/screens/SCR-02-signup.md
   ... [N more screens]
 
 Exports:
-  ✓ .planning/ui-exports/[service]-prompts.md
-  ✓ .planning/ui-exports/handoffs/design-handoff.md
-  [✓ .planning/ui-exports/figma-tokens.json (if Figma)]
+  ✓ .planning/design/ui-exports/[service]-prompts.md
+  ✓ .planning/design/ui-exports/handoffs/design-handoff.md
+  [✓ .planning/design/ui-exports/figma-tokens.json (if Figma)]
 
  QUICK STATS
 ─────────────────────────────────────────────────────────
@@ -244,15 +244,15 @@ Patterns: Auth Form, Dashboard Layout, Settings Section
 ## ▶ Use Your Exports
 
 **For Stitch:**
-  Copy prompts from .planning/ui-exports/stitch-prompts.md
+  Copy prompts from .planning/design/ui-exports/stitch-prompts.md
   Start with complex screens (Dashboard, etc.)
 
 **For V0:**
-  Copy prompts from .planning/ui-exports/v0-prompts.md
+  Copy prompts from .planning/design/ui-exports/v0-prompts.md
   Iterate on generated code
 
 **For Figma:**
-  Import .planning/ui-exports/figma-tokens.json as Variables
+  Import .planning/design/ui-exports/figma-tokens.json as Variables
   Follow setup guide in figma-setup.md
 
 ## ▶ Refine Later
@@ -280,15 +280,15 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage all generated files
-    git add .planning/CODE-ANALYSIS.md
-    git add .planning/design-tokens.json
-    git add .planning/UI-SPEC.md
-    git add .planning/COMPONENTS.md
-    git add .planning/UI-PATTERNS.md
-    git add .planning/UI-REGISTRY.md
-    git add .planning/screens/*.md
-    git add .planning/ui-exports/
-    git add .planning/ui-state/
+    git add .planning/design/CODE-ANALYSIS.md
+    git add .planning/design/design-tokens.json
+    git add .planning/design/UI-SPEC.md
+    git add .planning/design/COMPONENTS.md
+    git add .planning/design/UI-PATTERNS.md
+    git add .planning/design/UI-REGISTRY.md
+    git add .planning/design/screens/*.md
+    git add .planning/design/ui-exports/
+    git add .planning/design/ui-state/
 
     git commit -m "docs(ui): reverse-engineer codebase to design specs
 

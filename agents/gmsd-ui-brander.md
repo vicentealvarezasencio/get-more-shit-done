@@ -248,7 +248,7 @@ Contains:
 
 ### 2. logo-prompts.md
 
-Location: `.planning/ui-exports/logo-prompts.md`
+Location: `.planning/design/ui-exports/logo-prompts.md`
 
 Contains:
 - Midjourney prompts (primary, icon, wordmark)
@@ -386,7 +386,7 @@ Specification Created:
   - .planning/LOGO-SPEC.md
 
 Prompts Generated:
-  - .planning/ui-exports/logo-prompts.md
+  - .planning/design/ui-exports/logo-prompts.md
 
   Included:
   - Midjourney: primary, icon, wordmark
@@ -423,7 +423,7 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually
     git add .planning/LOGO-SPEC.md
-    git add .planning/ui-exports/logo-prompts.md
+    git add .planning/design/ui-exports/logo-prompts.md
 
     # Commit with comprehensive message
     git commit -m "docs(ui): create logo specification for {name}

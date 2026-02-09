@@ -228,7 +228,7 @@ Output: Updated coordinator state
 <context_protocol>
 
 ## Master State File
-Maintains `.planning/ui-state/coordinator-state.json`:
+Maintains `.planning/design/ui-state/coordinator-state.json`:
 
 ```json
 {
@@ -538,8 +538,8 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 # 2. If should commit
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually
-    git add .planning/UI-CONTEXT.md
-    git add .planning/design-tokens.json
+    git add .planning/design/UI-CONTEXT.md
+    git add .planning/design/design-tokens.json
     # ... other modified files
 
     # Commit with message

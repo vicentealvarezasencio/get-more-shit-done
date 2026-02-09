@@ -9,15 +9,15 @@ Display the current state of UI specifications: what's defined, what's been real
 </objective>
 
 <context>
-@.planning/UI-SPEC.md (if exists)
-@.planning/design-tokens.json (if exists)
-@.planning/COMPONENTS.md (if exists)
-@.planning/screens/*.md (if exists)
-@.planning/ui-exports/*.md (if exists)
-@.planning/UI-REGISTRY.md (if exists)
-@.planning/UI-PATTERNS.md (if exists)
-@.planning/UI-DECISIONS.md (if exists)
-@.planning/ui-state/coordinator-state.json (if exists)
+@.planning/design/UI-SPEC.md (if exists)
+@.planning/design/design-tokens.json (if exists)
+@.planning/design/COMPONENTS.md (if exists)
+@.planning/design/screens/*.md (if exists)
+@.planning/design/ui-exports/*.md (if exists)
+@.planning/design/UI-REGISTRY.md (if exists)
+@.planning/design/UI-PATTERNS.md (if exists)
+@.planning/design/UI-DECISIONS.md (if exists)
+@.planning/design/ui-state/coordinator-state.json (if exists)
 </context>
 
 <process>
@@ -28,26 +28,26 @@ Display the current state of UI specifications: what's defined, what's been real
 Check for existence and content of all UI artifacts:
 
 **Core Specifications:**
-- `.planning/UI-CONTEXT.md` — Project context
-- `.planning/UI-SPEC.md` — Master specification
-- `.planning/design-tokens.json` — Design tokens
-- `.planning/COMPONENTS.md` — Component inventory
-- `.planning/UI-PATTERNS.md` — Pattern library
-- `.planning/UI-DECISIONS.md` — Decision log
+- `.planning/design/UI-CONTEXT.md` — Project context
+- `.planning/design/UI-SPEC.md` — Master specification
+- `.planning/design/design-tokens.json` — Design tokens
+- `.planning/design/COMPONENTS.md` — Component inventory
+- `.planning/design/UI-PATTERNS.md` — Pattern library
+- `.planning/design/UI-DECISIONS.md` — Decision log
 
 **Screen Specifications:**
-- `.planning/screens/SCR-*.md` — Individual screens
+- `.planning/design/screens/SCR-*.md` — Individual screens
 
 **Exports:**
-- `.planning/ui-exports/stitch-prompts.md`
-- `.planning/ui-exports/v0-prompts.md`
-- `.planning/ui-exports/figma-tokens.json`
-- `.planning/ui-exports/generic-prompts.md`
-- `.planning/ui-exports/handoffs/*.md`
+- `.planning/design/ui-exports/stitch-prompts.md`
+- `.planning/design/ui-exports/v0-prompts.md`
+- `.planning/design/ui-exports/figma-tokens.json`
+- `.planning/design/ui-exports/generic-prompts.md`
+- `.planning/design/ui-exports/handoffs/*.md`
 
 **State:**
-- `.planning/UI-REGISTRY.md` — Realization tracking
-- `.planning/ui-state/coordinator-state.json`
+- `.planning/design/UI-REGISTRY.md` — Realization tracking
+- `.planning/design/ui-state/coordinator-state.json`
 </step>
 
 <step name="calculate_metrics">

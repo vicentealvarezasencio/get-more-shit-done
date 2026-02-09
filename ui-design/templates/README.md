@@ -11,14 +11,14 @@ This folder contains templates for all UI specification documents created by the
 
 | Template | Output File | Created By | Purpose |
 |----------|-------------|------------|---------|
-| `ui-spec.md` | `.planning/UI-SPEC.md` | `/gmsd:design-screens` | Master specification hub |
-| `ui-context.md` | `.planning/UI-CONTEXT.md` | `/gmsd:init` | Platform and constraints |
-| `screen.md` | `.planning/screens/SCR-XX-*.md` | `/gmsd:design-screens` | Individual screen specs |
-| `component.md` | `.planning/COMPONENTS.md` | `/gmsd:define-components` | Component inventory |
-| `ui-patterns.md` | `.planning/UI-PATTERNS.md` | `/gmsd:patterns` | Reusable UI patterns |
-| `ui-decisions.md` | `.planning/UI-DECISIONS.md` | `/gmsd:decisions` | Design decision log |
-| `ui-registry.md` | `.planning/UI-REGISTRY.md` | `/gmsd:realize` | Realization tracking |
-| `design-tokens.json` | `.planning/design-tokens.json` | `/gmsd:setup-tokens` | Design tokens (W3C) |
+| `ui-spec.md` | `.planning/design/UI-SPEC.md` | `/gmsd:design-screens` | Master specification hub |
+| `ui-context.md` | `.planning/design/UI-CONTEXT.md` | `/gmsd:init` | Platform and constraints |
+| `screen.md` | `.planning/design/screens/SCR-XX-*.md` | `/gmsd:design-screens` | Individual screen specs |
+| `component.md` | `.planning/design/COMPONENTS.md` | `/gmsd:define-components` | Component inventory |
+| `ui-patterns.md` | `.planning/design/UI-PATTERNS.md` | `/gmsd:patterns` | Reusable UI patterns |
+| `ui-decisions.md` | `.planning/design/UI-DECISIONS.md` | `/gmsd:decisions` | Design decision log |
+| `ui-registry.md` | `.planning/design/UI-REGISTRY.md` | `/gmsd:realize` | Realization tracking |
+| `design-tokens.json` | `.planning/design/design-tokens.json` | `/gmsd:setup-tokens` | Design tokens (W3C) |
 
 ---
 

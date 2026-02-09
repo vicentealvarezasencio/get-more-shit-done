@@ -12,9 +12,9 @@ Analyze all screen specifications to extract unique UI components. Create a comp
 <context>
 @~/.claude/get-more-shit-done/ui-design/templates/component.md
 @~/.claude/get-more-shit-done/ui-design/references/design-systems.md
-@.planning/UI-CONTEXT.md (if exists)
-@.planning/design-tokens.json (if exists)
-@.planning/screens/*.md (required)
+@.planning/design/UI-CONTEXT.md (if exists)
+@.planning/design/design-tokens.json (if exists)
+@.planning/design/screens/*.md (required)
 </context>
 
 <ux_principles>
@@ -38,7 +38,7 @@ Components are extracted automatically from screen specs:
 ## Verify Prerequisites
 
 1. **Check for screen specifications:**
-   - Glob `.planning/screens/SCR-*.md`
+   - Glob `.planning/design/screens/SCR-*.md`
    - If none found, prompt to run `/gmsd:design-screens` first
 
 2. **Check for existing COMPONENTS.md:**
@@ -393,7 +393,7 @@ For export purposes, create condensed briefs:
 <step name="write_components_file">
 ## Write COMPONENTS.md
 
-Create `.planning/COMPONENTS.md`:
+Create `.planning/design/COMPONENTS.md`:
 
 ```markdown
 # Component Inventory
@@ -459,14 +459,14 @@ Total: [N] components extracted from [M] screens
 2. Card (6 screens)
 3. Input (5 screens)
 
-See: `.planning/COMPONENTS.md` for full specifications
+See: `.planning/design/COMPONENTS.md` for full specifications
 ```
 </step>
 
 <step name="update_state">
 ## Update State
 
-Update `.planning/ui-state/coordinator-state.json`:
+Update `.planning/design/ui-state/coordinator-state.json`:
 ```json
 {
   "project_status": {
@@ -512,8 +512,8 @@ Layout (3):
 Library Alignment: shadcn/ui (12/[N] matching)
 
 Files:
-  ✓ .planning/COMPONENTS.md (full inventory)
-  ✓ .planning/UI-SPEC.md (updated summary)
+  ✓ .planning/design/COMPONENTS.md (full inventory)
+  ✓ .planning/design/UI-SPEC.md (updated summary)
 
 ───────────────────────────────────────────────────────
 
@@ -536,7 +536,7 @@ Files:
 </process>
 
 <success_criteria>
-- `.planning/COMPONENTS.md` exists with full inventory
+- `.planning/design/COMPONENTS.md` exists with full inventory
 - All components from screen specs are documented
 - Each component has: props, variants, states, accessibility, tokens
 - Components categorized appropriately

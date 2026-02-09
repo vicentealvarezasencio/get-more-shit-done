@@ -163,7 +163,7 @@ Task(
   - .planning/phases/{N}-{name}/VERIFICATION.md -- gap details
   - .planning/phases/{N}-{name}/PLAN.md -- original plan and verification spec
   {IF design exists:}
-  - .planning/phases/{N}-{name}/design/ -- design specs
+  - .planning/design/ -- design specs
   {ENDIF}
 
   GAPS TO FIX:
@@ -262,7 +262,7 @@ For each gap in actionable_gaps:
       - Original plan: .planning/phases/{N}-{name}/PLAN.md
       - Verification: .planning/phases/{N}-{name}/VERIFICATION.md
       {IF design exists:}
-      - Design specs: .planning/phases/{N}-{name}/design/
+      - Design specs: .planning/design/
       {ENDIF}
 
       ## Debug Protocol
@@ -314,7 +314,7 @@ For i in range(debugger_count):
     - .planning/phases/{N}-{name}/VERIFICATION.md
     - .planning/phases/{N}-{name}/PLAN.md
     {IF design:}
-    - .planning/phases/{N}-{name}/design/
+    - .planning/design/
     {ENDIF}
 
     CRITICAL PROTOCOL -- SHARED ROOT CAUSE DISCOVERY:

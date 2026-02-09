@@ -161,7 +161,7 @@ screens = [
 **Actor:** Lead
 
 ```
-mkdir -p .planning/phases/{N}-{name}/design/screens/
+mkdir -p .planning/design/screens/
 
 Update state.json:
   phase_status: "designing"
@@ -207,14 +207,14 @@ Task(
 
   DELIVERABLES (create all of these):
 
-  1. UI-CONTEXT.md at .planning/phases/{N}-{name}/design/UI-CONTEXT.md
+  1. UI-CONTEXT.md at .planning/design/UI-CONTEXT.md
      - Platform and framework details
      - Target devices and breakpoints
      - Design constraints (brand colors, accessibility)
      - User personas (from PROJECT.md)
      - Dark mode support decision
 
-  2. design-tokens.json at .planning/phases/{N}-{name}/design/design-tokens.json
+  2. design-tokens.json at .planning/design/design-tokens.json
      - Color palette (primary, secondary, neutral, semantic)
      - Typography scale (headings, body, small)
      - Spacing scale (4px base)
@@ -224,7 +224,7 @@ Task(
      - Dark mode variants for all colors
 
   3. Screen specs (one per screen):
-     For each screen, write .planning/phases/{N}-{name}/design/screens/{screen.id}-{screen.name}.md:
+     For each screen, write .planning/design/screens/{screen.id}-{screen.name}.md:
      - Screen metadata (ID, name, route, auth requirements)
      - Purpose and user story
      - Layout description (header, body, footer zones)
@@ -236,12 +236,12 @@ Task(
      - Accessibility notes
      - Design token usage (reference tokens, not raw values)
 
-  4. COMPONENTS.md at .planning/phases/{N}-{name}/design/COMPONENTS.md
+  4. COMPONENTS.md at .planning/design/COMPONENTS.md
      - Inventory of all components used across screen specs
      - Grouped by category (layout, navigation, forms, data, feedback, overlay)
      - For each component: name, props, variants, usage locations
 
-  5. UI-SPEC.md at .planning/phases/{N}-{name}/design/UI-SPEC.md
+  5. UI-SPEC.md at .planning/design/UI-SPEC.md
      - Hub document linking to all design artifacts
      - Screen inventory table (ID, name, route, spec file, status)
      - Component summary
@@ -264,11 +264,11 @@ Task(
 WAIT for Task tool to return
 
 Verify deliverables exist:
-  - .planning/phases/{N}-{name}/design/UI-CONTEXT.md
-  - .planning/phases/{N}-{name}/design/design-tokens.json
-  - .planning/phases/{N}-{name}/design/screens/ (contains at least 1 file)
-  - .planning/phases/{N}-{name}/design/COMPONENTS.md
-  - .planning/phases/{N}-{name}/design/UI-SPEC.md
+  - .planning/design/UI-CONTEXT.md
+  - .planning/design/design-tokens.json
+  - .planning/design/screens/ (contains at least 1 file)
+  - .planning/design/COMPONENTS.md
+  - .planning/design/UI-SPEC.md
 
 IF any missing: warn user, note incomplete deliverables
 GOTO Step 5 (Finalize)
@@ -294,7 +294,7 @@ TaskCreate({
   subject: "T-D01: Create UI context document",
   description: "## Task: UI Context Document
 
-    Create .planning/phases/{N}-{name}/design/UI-CONTEXT.md
+    Create .planning/design/UI-CONTEXT.md
 
     Read these files first:
     - .planning/PROJECT.md
@@ -320,10 +320,10 @@ TaskCreate({
   subject: "T-D02: Define design token system",
   description: "## Task: Design Token System
 
-    Create .planning/phases/{N}-{name}/design/design-tokens.json
+    Create .planning/design/design-tokens.json
 
     Read first:
-    - .planning/phases/{N}-{name}/design/UI-CONTEXT.md (MUST exist -- wait if not)
+    - .planning/design/UI-CONTEXT.md (MUST exist -- wait if not)
     - Existing codebase theme/styling files (if any)
 
     Define tokens for:
@@ -357,11 +357,11 @@ For i, screen in enumerate(screens):
     subject: "T-D{task_num:02d}: Specify screen {screen.id}",
     description: "## Task: Screen Specification -- {screen.id}: {screen.name}
 
-      Create .planning/phases/{N}-{name}/design/screens/{screen.id}-{screen.name}.md
+      Create .planning/design/screens/{screen.id}-{screen.name}.md
 
       Read first:
-      - .planning/phases/{N}-{name}/design/UI-CONTEXT.md
-      - .planning/phases/{N}-{name}/design/design-tokens.json
+      - .planning/design/UI-CONTEXT.md
+      - .planning/design/design-tokens.json
       - .planning/phases/{N}-{name}/PLAN.md (task {screen.task})
       - Any peer screen specs already written (for consistency)
 
@@ -400,13 +400,13 @@ TaskCreate({
   description: "## Task: Component Inventory
 
     Create:
-    - .planning/phases/{N}-{name}/design/COMPONENTS.md
-    - .planning/phases/{N}-{name}/design/UI-SPEC.md
+    - .planning/design/COMPONENTS.md
+    - .planning/design/UI-SPEC.md
 
     Read first:
-    - All screen spec files in .planning/phases/{N}-{name}/design/screens/
-    - .planning/phases/{N}-{name}/design/design-tokens.json
-    - .planning/phases/{N}-{name}/design/UI-CONTEXT.md
+    - All screen spec files in .planning/design/screens/
+    - .planning/design/design-tokens.json
+    - .planning/design/UI-CONTEXT.md
 
     COMPONENTS.md:
     Extract every component referenced in screen specs. For each:
@@ -571,11 +571,11 @@ WAIT for all shutdown_response(approve=true)
 
 ```
 Verify all expected files exist:
-  - .planning/phases/{N}-{name}/design/UI-CONTEXT.md
-  - .planning/phases/{N}-{name}/design/design-tokens.json
-  - .planning/phases/{N}-{name}/design/COMPONENTS.md
-  - .planning/phases/{N}-{name}/design/UI-SPEC.md
-  - For each screen: .planning/phases/{N}-{name}/design/screens/{screen.id}-{name}.md
+  - .planning/design/UI-CONTEXT.md
+  - .planning/design/design-tokens.json
+  - .planning/design/COMPONENTS.md
+  - .planning/design/UI-SPEC.md
+  - For each screen: .planning/design/screens/{screen.id}-{name}.md
 
 Report any missing artifacts.
 ```
@@ -598,11 +598,11 @@ Update state.json:
 Lead: "Design phase complete for Phase {N} ({phase_name})!
 
   Artifacts created:
-  - UI Context: .planning/phases/{N}-{name}/design/UI-CONTEXT.md
-  - Design Tokens: .planning/phases/{N}-{name}/design/design-tokens.json
+  - UI Context: .planning/design/UI-CONTEXT.md
+  - Design Tokens: .planning/design/design-tokens.json
   - Screen Specs: {screen_count} screens in design/screens/
-  - Component Inventory: .planning/phases/{N}-{name}/design/COMPONENTS.md
-  - UI Spec Hub: .planning/phases/{N}-{name}/design/UI-SPEC.md
+  - Component Inventory: .planning/design/COMPONENTS.md
+  - UI Spec Hub: .planning/design/UI-SPEC.md
 
   Screen summary:
   {for each screen:}

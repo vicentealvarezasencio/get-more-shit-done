@@ -529,7 +529,7 @@ For each target, load and apply adapter:
 <memory_protocol>
 
 ## State File
-Maintains state in `.planning/ui-state/prompter-state.json`:
+Maintains state in `.planning/design/ui-state/prompter-state.json`:
 
 ```json
 {
@@ -641,7 +641,7 @@ Handoffs Created:
   ✓ handoffs/design-handoff.md
 
 Export Files:
-  ✓ .planning/ui-exports/stitch-prompts.md
+  ✓ .planning/design/ui-exports/stitch-prompts.md
 
 Registry Updated:
   ✓ UI-REGISTRY.md (2 screens ready for generation)
@@ -673,9 +673,9 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually (NEVER git add . or git add -A)
-    git add .planning/ui-exports/stitch-prompts.md
-    git add .planning/ui-exports/handoffs/design-handoff.md
-    git add .planning/UI-REGISTRY.md
+    git add .planning/design/ui-exports/stitch-prompts.md
+    git add .planning/design/ui-exports/handoffs/design-handoff.md
+    git add .planning/design/UI-REGISTRY.md
     # ... other modified files
 
     # Commit with comprehensive message

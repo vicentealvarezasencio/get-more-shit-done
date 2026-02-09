@@ -620,7 +620,7 @@ Total components: XX
 <memory_protocol>
 
 ## State File
-Maintains state in `.planning/ui-state/specifier-state.json`:
+Maintains state in `.planning/design/ui-state/specifier-state.json`:
 
 ```json
 {
@@ -732,8 +732,8 @@ When completing specification work, return:
 Task: [what was specified]
 
 Screens Created:
-  ✓ SCR-01: Login (.planning/screens/SCR-01-login.md)
-  ✓ SCR-02: Signup (.planning/screens/SCR-02-signup.md)
+  ✓ SCR-01: Login (.planning/design/screens/SCR-01-login.md)
+  ✓ SCR-02: Signup (.planning/design/screens/SCR-02-signup.md)
 
 Components Identified:
   ✓ CMP-01: Button (4 variants)
@@ -780,9 +780,9 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING=false || COMMIT_PLA
 
 if [ "$COMMIT_PLANNING" = "true" ]; then
     # Stage files individually (NEVER git add . or git add -A)
-    git add .planning/screens/SCR-01-login.md
-    git add .planning/COMPONENTS.md
-    git add .planning/UI-PATTERNS.md
+    git add .planning/design/screens/SCR-01-login.md
+    git add .planning/design/COMPONENTS.md
+    git add .planning/design/UI-PATTERNS.md
     # ... other modified files
 
     # Commit with comprehensive message
