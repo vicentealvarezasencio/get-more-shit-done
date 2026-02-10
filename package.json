@@ -1,6 +1,6 @@
 {
   "name": "get-more-shit-done-cc",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "A team-based project orchestration system for Claude Code. Research, design, plan, execute, verify — with coordinated agent teams.",
   "type": "module",
   "bin": {
@@ -59,6 +59,10 @@
   },
   "bugs": {
     "url": "https://github.com/vicentealvarezasencio/get-more-shit-done/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/vicentealvarezasencio"
   },
   "homepage": "https://github.com/vicentealvarezasencio/get-more-shit-done#readme",
   "engines": {
