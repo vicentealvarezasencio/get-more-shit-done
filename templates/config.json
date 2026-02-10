@@ -2,6 +2,7 @@
   "project_name": "{{PROJECT_NAME}}",
   "version": "{{VERSION}}",
   "mode": "guided",
+  "execution_mode": null,
   "teams": {
     "default_executors": 3,
     "max_executors": 5,

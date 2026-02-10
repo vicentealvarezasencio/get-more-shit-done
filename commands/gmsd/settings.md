@@ -15,6 +15,7 @@ Attempt to read `.planning/config.json` from the current working directory.
   "project_name": "(not set)",
   "version": "0.1.0",
   "mode": "guided",
+  "execution_mode": null,
   "teams": {
     "default_executors": 3,
     "max_executors": 5,
@@ -67,6 +68,18 @@ Show all settings in a readable format:
               stuck or at user-defined checkpoints. Maximum
               speed for experienced users.
 
+ EXECUTION MODE
+ ─────────────────────────────────────────────────────────────
+ Current:         {execution_mode or "Not set (will prompt on first use)"}
+
+   team    — Coordinated agent teams. Agents share a task list,
+             communicate in real-time, and scale dynamically.
+             Requires: CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+
+   classic — Original GSD workflow. Independent fire-and-forget
+             agents with wave-based execution. Works on any
+             Claude Code installation without experimental flags.
+
  TEAM SIZES
  ─────────────────────────────────────────────────────────────
  Default Executors:    {teams.default_executors}
@@ -102,6 +115,7 @@ Use conversational interaction to ask the user what they want to modify:
 
 Ask: **"What would you like to change? You can say things like:"**
 - "Set mode to yolo"
+- "Set execution mode to classic"
 - "Change default executors to 5"
 - "Add model override for executor: opus"
 - "Disable auto commit"
@@ -117,6 +131,12 @@ Based on the user's response, update the appropriate fields in config.json.
 **Mode changes:**
 - Validate that the value is one of: `guided`, `balanced`, `yolo`
 - Also update `state.json` mode field to keep them in sync
+
+**Execution mode changes:**
+- Validate that the value is one of: `team`, `classic`
+- When switching to `team`: check if the experimental Agent Teams flag is enabled
+  - If NOT enabled: warn user and offer to write `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1'` to `~/.claude/settings.json` under `env`, or suggest running `export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+  - If enabled: proceed with the change
 
 **Team size changes:**
 - Validate numbers are positive integers

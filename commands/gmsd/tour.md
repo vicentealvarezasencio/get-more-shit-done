@@ -234,6 +234,21 @@ You are the GMSD tour guide. Walk the user through the entire GMSD workflow with
  - Dynamic scaling: more agents spawn if many tasks become unblocked
  - File ownership: no two agents modify the same file simultaneously
  - Deviation protocol: agents ask permission before deviating from spec
+
+ Execution Modes:
+ GMSD supports two execution modes (configurable via /gmsd:settings):
+
+ - Agent Teams mode: The full coordinated experience described above.
+   Requires the experimental Agent Teams flag in Claude Code
+   (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1).
+
+ - Classic GSD mode: The original GSD approach using independent
+   fire-and-forget agents with wave-based execution. No shared task
+   list or inter-agent messaging. Works on any Claude Code installation
+   without experimental flags.
+
+ You will be prompted to choose your mode the first time you run a
+ team-creating command.
 ```
 
 **Show mock execution timeline:**

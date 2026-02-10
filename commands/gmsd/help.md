@@ -209,6 +209,12 @@ Show a quick start section for new users:
  QUICK START
  ─────────────────────────────────────────────────────────────
 
+ Execution modes:
+   GMSD supports two execution modes:
+   - Agent Teams (coordinated multi-agent teams with shared task lists)
+   - Classic GSD (independent fire-and-forget agents, no experimental flag needed)
+   Run /gmsd:settings to choose or change your execution mode.
+
  New project:
    1. /gmsd:new-project          Set up project + run research
    2. /gmsd:discuss-phase 1      Lock decisions for phase 1

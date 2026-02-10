@@ -170,9 +170,23 @@ Update state.json:
 
 ---
 
+## Step 3.5: Execution Mode Check
+
+**Actor:** Lead
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic.
+
+- **If `execution_mode` is `"team"`:** Use scope-based routing below (small scope -> 4a single designer, large scope -> 4b design team).
+- **If `execution_mode` is `"classic"`:** Always use Step 4a (single designer), regardless of scope. The single designer handles the full workload. Skip Step 4b entirely.
+- **If `execution_mode` is `null`:** Prompt user for choice, save to config.json, then proceed.
+
+---
+
 ## Step 4a: Small Scope -- Single Designer
 
-**Condition:** `scope == "small" OR scope == "minimal"`
+**Condition:** `scope == "small" OR scope == "minimal"` OR `execution_mode == "classic"` (any scope)
 
 ### Spawn Single Designer Subagent
 
@@ -276,9 +290,11 @@ GOTO Step 5 (Finalize)
 
 ---
 
-## Step 4b: Large Scope -- Design Team
+## Step 4b: Large Scope -- Design Team (Team Mode Only)
 
-**Condition:** `scope == "large"`
+**Condition:** `scope == "large"` AND `execution_mode == "team"`
+
+**Note:** In classic mode, large scope designs use Step 4a (single designer) instead. This team-based flow is only available when `execution_mode == "team"`.
 
 ### 4b-i. Create Team
 

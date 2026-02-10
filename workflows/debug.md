@@ -230,9 +230,28 @@ GOTO Step 4 (Re-verify)
 
 ---
 
+## Step 2.5: Execution Mode Check
+
+**Actor:** Lead
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic.
+
+This check determines which path Step 3b uses:
+- **If `execution_mode` is `"team"`:** Step 3b uses the full team flow (TeamCreate, shared TaskList, broadcasts).
+- **If `execution_mode` is `"classic"`:** Step 3b uses the classic flow (parallel Task() debuggers, no team).
+- **If `execution_mode` is `null`:** Prompt user for choice, save to config.json, then proceed.
+
+**Note:** Step 3a (single debugger) is unaffected by execution mode -- it already uses a single `Task()` subagent.
+
+---
+
 ## Step 3b: Debug Team Flow
 
 **Condition:** `strategy == "team"`
+
+**If `execution_mode == "classic"`:** Skip to **Step 3b-Classic** below.
 
 ### 3b-i. Create Team
 
@@ -398,6 +417,87 @@ For each active teammate in "gmsd-debug-{N}":
   content="Debug phase complete. Shutting down.")
 
 WAIT for all shutdown_response(approve=true)
+```
+
+---
+
+## Step 3b-Classic: Debug with Parallel Task() Agents
+
+**Condition:** `strategy == "team"` AND `execution_mode == "classic"`
+
+Instead of creating a debug team with TeamCreate, spawn parallel `Task()` debuggers -- one per gap. Each debugger works independently. No shared root cause discovery (the key trade-off of classic mode).
+
+### 3b-Classic-i. Spawn Parallel Debuggers
+
+```
+// Check model overrides
+Read .planning/config.json
+IF config.model_overrides["debugger"] exists:
+  debugger_model = config.model_overrides["debugger"]
+ELSE:
+  debugger_model = default
+
+// Spawn one Task() per actionable gap (parallel, fire-and-forget)
+spawned = []
+FOR each gap in actionable_gaps:
+  agent = Task(
+    subagent_type="general-purpose",
+    run_in_background=true,
+    prompt="You are a GMSD Debugger. Your job is to investigate a single
+    verification gap, find its root cause, implement a fix, and verify.
+
+    PHASE CONTEXT:
+    - Project: {project_name}
+    - Phase: {N} -- {phase_name}
+    - Phase goal: {phase_goal}
+    - Mode: {mode}
+    - Git commit prefix: {config.git.commit_prefix}
+
+    INPUT FILES:
+    - .planning/phases/{N}-{name}/VERIFICATION.md
+    - .planning/phases/{N}-{name}/PLAN.md
+    {IF design exists:}
+    - .planning/design/
+    {ENDIF}
+
+    YOUR GAP:
+    ## Gap {gap.number}: {gap.title}
+    - Severity: {gap.severity}
+    - Criterion: {gap.criterion}
+    - Description: {gap.description}
+    - Verifier's root cause guess: {gap.root_cause_guess}
+    - Suggested fix: {gap.suggested_fix}
+    - Files affected: {gap.files}
+
+    DEBUG PROTOCOL:
+    1. INVESTIGATE: Read affected files, understand expected vs actual
+    2. ROOT CAUSE: Find the actual root cause
+    3. FIX: Implement minimal fix
+    4. VERIFY: Confirm fix works without breaking other functionality
+    5. COMMIT: {config.git.commit_prefix}(fix): {gap.title}
+
+    OUTPUT:
+    Report: Gap {gap.number}: {fixed/not_fixed} -- {root cause} -- {fix description}"
+  )
+  spawned.append({ gap: gap, agent: agent })
+```
+
+### 3b-Classic-ii. Wait for All Debuggers
+
+```
+FOR entry in spawned:
+  result = WAIT for entry.agent to return
+
+  IF result indicates fix applied:
+    fixed_count += 1
+    Log: "Gap {entry.gap.number} fixed."
+  ELSE:
+    unfixed_count += 1
+    Log: "Gap {entry.gap.number} NOT fixed: {result}"
+
+Log: "Classic debug complete: {fixed_count}/{len(actionable_gaps)} gaps fixed."
+
+GOTO Step 4 (Re-verify)
 ```
 
 ---

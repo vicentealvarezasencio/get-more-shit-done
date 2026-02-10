@@ -59,6 +59,18 @@ Before creating the team, run pre-flight validation on the plan to catch structu
 }
 ```
 
+### Step 0.9: Execution Mode Check
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic:
+
+- **If `execution_mode` is `null`:** Present the user with the execution mode choice (team vs classic). Save their choice to `config.json`. See `workflows/execution-mode-check.md` for the full prompt.
+- **If `execution_mode` is `"team"`:** Continue with the team-based flow below (Steps 1-10).
+- **If `execution_mode` is `"classic"`:** Skip to **Step C1: Classic Execution** below.
+
+---
+
 ### Step 1: Read Phase Plan
 
 1. Read `.planning/ROADMAP.md` to find phase `{N}`. Extract the phase name, goal, and dependencies.
@@ -664,6 +676,85 @@ Current: Phase {N} — {name} | Status: executed | Mode: {mode}
 - `/gmsd:progress` — Check full project status
 - `/gmsd:pause-work` — Save state and pause for later
 ```
+
+---
+
+## Classic Execution Path
+
+**Condition:** `execution_mode == "classic"` (from Step 0.9)
+
+This replaces Steps 1-10 above with a wave-based fire-and-forget approach. No `TeamCreate`, no `SendMessage`, no shared `TaskList`. Follows the detailed workflow in `workflows/execute-phase.md` -> "Classic Execution Path" section.
+
+### Step C1: Read Phase Plan (same as Step 1)
+
+Read all the same context: ROADMAP.md, PLAN.md, CONTEXT.md, design specs. Extract tasks, dependencies, file ownership, and verification spec. This step is identical to Step 1 in team mode.
+
+### Step C2: Parse Tasks into Waves
+
+Group tasks by dependency level:
+- **Wave 1:** Tasks with no dependencies (can start immediately)
+- **Wave 2:** Tasks that depend only on Wave 1 tasks
+- **Wave 3:** Tasks that depend on Wave 1 + Wave 2 tasks
+- Continue until all tasks are assigned to a wave
+
+Display to the user:
+```
+## Classic Execution Plan
+
+Phase {N}: {name}
+Goal: {phase_goal}
+
+Tasks: {total_count} total, organized into {wave_count} waves
+Executors per wave: up to {default_executors} parallel agents
+Mode: {mode}
+
+Wave 1: {count} tasks — {list task names}
+Wave 2: {count} tasks — {list task names}
+...
+```
+
+**If mode is `guided`:** Ask "Ready to start execution? (yes / adjust / review tasks first)"
+**If mode is `balanced`:** Show the plan and proceed.
+**If mode is `yolo`:** Proceed immediately.
+
+### Step C3: Update State
+
+Update `.planning/state.json`:
+```json
+{
+  "current_phase": "{N}",
+  "phase_status": "executing",
+  "active_team": null,
+  "last_command": "/gmsd:execute-phase {N}",
+  "last_updated": "{ISO timestamp}"
+}
+```
+
+### Step C4: Execute Waves
+
+For each wave, sequentially:
+
+1. Spawn up to `{default_executors}` parallel `Task()` subagents (one per task in the wave, or batched if the wave is larger than `default_executors`)
+2. Each subagent receives a **full self-contained task brief** (same format as team mode — see Step 2's task description template)
+3. The only differences from team mode briefs:
+   - No `SendMessage` instructions
+   - No `TaskList`/`TaskUpdate` instructions
+   - Deviation protocol: proceed with best judgment, document in output
+4. Wait for all subagents in the wave/batch to complete
+5. Collect results, check for failures
+6. If any task failed: retry ONCE with an adjusted approach prompt
+7. Log progress: "Wave {N}/{total}: {completed} completed, {failed} failed"
+8. Proceed to the next wave
+
+### Step C5: Post-Execution Summary
+
+Same as Step 7 (Post-Execution Summary) in team mode. Calculate metrics, present to user. Include:
+- Note: "Execution mode: Classic (wave-based, {wave_count} waves)"
+- No team size / scaling metrics (not applicable in classic mode)
+
+### Step C6-C9: State Update, Metrics, CLAUDE.md Sync, What's Next
+
+Same as Steps 8, 8b, 9, and 10 in team mode. The state update, metrics recording, CLAUDE.md sync, and routing are identical regardless of execution mode.
 
 ---
 

@@ -102,6 +102,7 @@ Write .planning/config.json:
   "project_name": "{from user}",
   "version": "0.1.0",
   "mode": "guided",              // default, user can change via /gmsd:settings
+  "execution_mode": null,        // null = prompt on first use; "team" or "classic"
   "teams": {
     "default_executors": 3,
     "max_executors": 5,
@@ -146,7 +147,21 @@ Write .planning/state.json:
 
 ---
 
-## Step 3: Create Research Team
+## Step 2.5: Execution Mode Check
+
+**Actor:** Lead
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic:
+
+- **If `execution_mode` is `null`:** Present the user with the execution mode choice (team vs classic). Save their choice to `config.json`.
+- **If `execution_mode` is `"team"`:** Continue with the team-based research flow (Steps 3-6 below).
+- **If `execution_mode` is `"classic"`:** Skip to **Classic Research Path** below.
+
+---
+
+## Step 3: Create Research Team (Team Mode)
 
 **Actor:** Lead
 **Team type:** Research team with 3 researchers
@@ -426,6 +441,154 @@ For each active teammate in "gmsd-research-init":
 // Then delete team
 // (Team auto-cleans when all members shut down)
 ```
+
+---
+
+## Classic Research Path
+
+**Condition:** `execution_mode == "classic"` (from Step 2.5)
+
+This replaces Steps 3-6 (team-based research) with fire-and-forget `Task()` subagents. No `TeamCreate`, no `SendMessage`, no shared `TaskList`.
+
+### Classic 3a: Check Model Overrides
+
+```
+Read .planning/config.json
+IF config.model_overrides["researcher"] exists:
+  researcher_model = config.model_overrides["researcher"]
+ELSE:
+  researcher_model = default
+```
+
+### Classic 3b: Spawn 3 Parallel Researchers
+
+```
+// Spawn 3 independent Task() subagents -- one per focus area
+// Each writes directly to its output file. No coordination.
+
+researcher_tech = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD researcher. Research the technical landscape for '{project_name}'.
+
+  PROJECT CONTEXT:
+  - Vision: {vision_statement}
+  - Platform: {platform}
+  - Language: {language}
+  - Framework: {framework}
+  - Key dependencies: {dependencies}
+
+  RESEARCH QUESTIONS:
+  1. What frameworks/libraries are best suited for this project type?
+  2. What is the maturity and maintenance status of key dependencies?
+  3. Are there version compatibility concerns?
+  4. What APIs or services are needed?
+  5. What build/tooling setup is standard for this stack?
+
+  OUTPUT:
+  Write your findings to .planning/phases/init/research/technical-landscape.md
+  Format: Summary, Key Details (bullet points), Recommendations, Risks"
+)
+
+researcher_market = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD researcher. Research the competitive landscape for '{project_name}'.
+
+  PROJECT CONTEXT:
+  - Vision: {vision_statement}
+  - Problem: {problem_statement}
+  - Target users: {target_users}
+
+  RESEARCH QUESTIONS:
+  1. What existing solutions address this problem?
+  2. What do they do well? What are their weaknesses?
+  3. What UX patterns do successful solutions use?
+  4. What differentiates {project_name}?
+  5. What can we learn from their approach?
+
+  OUTPUT:
+  Write your findings to .planning/phases/init/research/competitive-landscape.md
+  Format: Summary, Key Details (bullet points), Recommendations, Risks"
+)
+
+researcher_arch = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD researcher. Research architecture patterns for '{project_name}'.
+
+  PROJECT CONTEXT:
+  - Vision: {vision_statement}
+  - Platform: {platform}
+  - Framework: {framework}
+  - Requirements: {core_requirements}
+  - Constraints: {technical_constraints}
+
+  RESEARCH QUESTIONS:
+  1. What architectural patterns are recommended for {framework} + {project type}?
+  2. What are common scalability considerations?
+  3. What testing strategies work best?
+  4. What are common pitfalls and how to avoid them?
+  5. What project structure is conventional?
+
+  OUTPUT:
+  Write your findings to .planning/phases/init/research/architecture-patterns.md
+  Format: Summary, Key Details (bullet points), Recommendations, Risks"
+)
+```
+
+### Classic 3c: Wait for All Researchers
+
+```
+// Wait for all 3 Task() subagents to return
+WAIT for researcher_tech, researcher_market, researcher_arch
+
+// Check if output files were written
+Verify existence of:
+  - .planning/phases/init/research/technical-landscape.md
+  - .planning/phases/init/research/competitive-landscape.md
+  - .planning/phases/init/research/architecture-patterns.md
+
+IF any missing: warn user, note incomplete research
+```
+
+### Classic 3d: Spawn Synthesizer
+
+```
+// Spawn one more Task() subagent to merge research findings
+synthesizer = Task(
+  subagent_type="general-purpose",
+  prompt="You are a GMSD research synthesizer for '{project_name}'.
+
+  Read all 3 research outputs and create a unified RESEARCH.md:
+  - .planning/phases/init/research/technical-landscape.md
+  - .planning/phases/init/research/competitive-landscape.md
+  - .planning/phases/init/research/architecture-patterns.md
+
+  Also read: .planning/PROJECT.md for project context.
+
+  Create .planning/RESEARCH.md with:
+  1. Executive summary
+  2. Consolidated findings by topic
+  3. Technology recommendations table
+  4. Resolved conflicts (with reasoning)
+  5. Unresolved questions (for user)
+  6. Gaps identified
+  7. Risk register
+  8. Recommendations for roadmap planning"
+)
+
+WAIT for synthesizer to return
+
+// Verify RESEARCH.md was written
+IF .planning/RESEARCH.md does not exist:
+  Log: "WARNING: Synthesizer did not produce RESEARCH.md. Attempting manual synthesis."
+  // Lead reads individual research files and produces a basic synthesis
+```
+
+### Classic 3e: Continue to Roadmap
+
+After synthesis is complete, proceed to Step 7 (Create Roadmap with User) -- same as team mode.
 
 ---
 

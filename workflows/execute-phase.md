@@ -972,3 +972,229 @@ GUIDED MODE:
   - Conservative scaling
   - Progress on every completion
 ```
+
+---
+
+## Classic Execution Path
+
+**Condition:** `config.execution_mode == "classic"`
+
+This path replaces the team-based flow (Steps 1-5 above) with wave-based fire-and-forget execution using `Task()` subagents. No `TeamCreate`, no `SendMessage`, no shared `TaskList`. Each subagent runs independently and returns its results when done.
+
+Reference: `workflows/execution-mode-check.md`
+
+---
+
+### Classic Step C1: Parse PLAN.md into Waves
+
+**Actor:** Lead
+
+```
+Read all context (same as Step 1a above):
+  plan, roadmap, config, project, context, research
+
+Extract tasks[] from PLAN.md with: id, name, description, depends_on,
+  files_read, files_create, files_modify, acceptance_criteria
+
+// Group tasks by dependency level into waves:
+// Wave 1: tasks with NO dependencies
+// Wave 2: tasks that depend ONLY on Wave 1 tasks
+// Wave 3: tasks that depend on Wave 1 + Wave 2 tasks
+// etc.
+
+waves = []
+assigned = set()
+
+WHILE len(assigned) < len(tasks):
+  current_wave = []
+  For each task in tasks:
+    IF task.id NOT in assigned:
+      IF all dependencies of task are in assigned:
+        current_wave.append(task)
+
+  IF current_wave is empty:
+    ERROR: "Circular dependency detected. Cannot compute waves."
+    STOP.
+
+  waves.append(current_wave)
+  For each task in current_wave:
+    assigned.add(task.id)
+
+Log:
+  "Classic mode: {len(tasks)} tasks organized into {len(waves)} waves."
+  For i, wave in enumerate(waves):
+    "  Wave {i+1}: {len(wave)} tasks -- {[t.id for t in wave]}"
+```
+
+---
+
+### Classic Step C2: Execute Waves Sequentially
+
+**Actor:** Lead
+
+```
+total_completed = 0
+total_failed = 0
+all_results = []
+
+FOR wave_num, wave in enumerate(waves):
+  Log: "Starting Wave {wave_num+1}/{len(waves)}: {len(wave)} tasks"
+
+  // Determine how many subagents to spawn (capped by config)
+  batch_size = min(len(wave), config.teams.default_executors)
+
+  // Split wave tasks into batches if wave is larger than batch_size
+  batches = chunk(wave, batch_size)
+
+  FOR batch in batches:
+    // Spawn parallel Task() subagents -- one per task
+    spawned = []
+    FOR task in batch:
+      agent = Task(
+        subagent_type="general-purpose",
+        prompt=build_classic_task_prompt(task),  // see below
+        run_in_background=true
+      )
+      spawned.append({ task: task, agent: agent })
+
+    // Wait for ALL subagents in this batch to complete
+    FOR entry in spawned:
+      result = WAIT for entry.agent to return
+
+      IF result indicates success:
+        total_completed += 1
+        all_results.append({ task: entry.task, status: "completed", output: result })
+        Log: "[Wave {wave_num+1}] Task {entry.task.id} completed."
+
+      ELSE IF result indicates failure:
+        // Retry ONCE with adjusted approach
+        Log: "[Wave {wave_num+1}] Task {entry.task.id} failed. Retrying..."
+
+        retry_agent = Task(
+          subagent_type="general-purpose",
+          prompt=build_classic_task_prompt(entry.task, retry=true, error=result)
+        )
+        retry_result = WAIT for retry_agent
+
+        IF retry_result indicates success:
+          total_completed += 1
+          all_results.append({ task: entry.task, status: "completed", output: retry_result })
+          Log: "[Wave {wave_num+1}] Task {entry.task.id} completed on retry."
+        ELSE:
+          total_failed += 1
+          all_results.append({ task: entry.task, status: "failed", output: retry_result })
+          Log: "[Wave {wave_num+1}] Task {entry.task.id} FAILED after retry."
+
+  Log: "Wave {wave_num+1} complete. Progress: {total_completed}/{len(tasks)} tasks."
+```
+
+---
+
+### Classic Step C3: Build Task Prompt (Helper)
+
+The task prompt for classic mode uses the **same self-contained brief format** as team mode. The only differences are:
+
+1. No `SendMessage` instructions (agent cannot message peers)
+2. No `TaskList` / `TaskUpdate` instructions (no shared task list)
+3. Deviation protocol is simplified: proceed with best judgment, document deviations in output
+
+```
+build_classic_task_prompt(task, retry=false, error=null):
+
+  prompt = "
+You are a GMSD Executor agent working independently on a single task.
+
+## Your Task
+
+{full self-contained task brief -- same format as team mode Step 1b}
+  - Task ID, name, objective
+  - Project and phase context
+  - Key decisions from CONTEXT.md
+  - Design references (if applicable)
+  - Step-by-step instructions
+  - Files to read before starting
+  - Files to create or modify
+  - Acceptance criteria
+  - File ownership
+  - Git commit convention
+
+## Execution Protocol
+
+1. Read ALL files listed in 'Files to Read Before Starting'
+2. Implement the task following the instructions exactly
+3. Self-check against every acceptance criterion
+4. Stage ONLY the files listed in 'Files to Create or Modify'
+5. Commit with format: {config.git.commit_prefix}({task.id}): {description}
+6. Report what you did: files modified, criteria met, any deviations
+
+## Deviation Handling
+
+If you need to deviate from the instructions:
+- Minor (variable names, small refactors): proceed, note in your output
+- Moderate (different approach, extra files): proceed with best judgment, document clearly
+- Major (scope change, architecture change): implement what you can, document what could not be done and why
+
+{IF retry:}
+## RETRY CONTEXT
+
+This is a retry. The previous attempt failed with:
+{error}
+
+Adjust your approach to avoid the same failure. Try an alternative strategy.
+{ENDIF}
+
+## Output
+
+When complete, report:
+- Files created or modified (list)
+- Acceptance criteria status (pass/fail for each)
+- Any deviations from the plan (describe each)
+- Any issues discovered (for the lead to address)
+"
+
+  return prompt
+```
+
+---
+
+### Classic Step C4: Completion
+
+**Actor:** Lead
+
+Same as team mode Step 5 (state update, summary, CLAUDE.md sync), with these differences:
+
+```
+// No team to shut down (no TeamCreate was called)
+// No TaskList to verify (no shared task list was used)
+
+// Collect results from all_results
+completed_tasks = [r for r in all_results if r.status == "completed"]
+failed_tasks = [r for r in all_results if r.status == "failed"]
+
+// Count commits
+commits = count git commits with "{config.git.commit_prefix}(phase-{N})" or task ID prefix
+
+// Generate SUMMARY.md (same format as team mode)
+// Update state.json (same as team mode)
+// Update STATE.md (same as team mode)
+// Sync CLAUDE.md (same as team mode)
+
+// Present execution summary to user (same format as team mode)
+// Include note about execution mode:
+Log: "Execution mode: Classic (wave-based, {len(waves)} waves)"
+```
+
+---
+
+### Classic Mode Differences Summary
+
+| Aspect | Team Mode | Classic Mode |
+|---|---|---|
+| Dispatch | Shared task list, agents claim dynamically | Pre-computed waves, one Task() per task |
+| Communication | Real-time messaging (SendMessage, broadcast) | None -- agents are independent |
+| Scaling | Dynamic (spawn more if tasks pile up) | Fixed (batch_size per wave) |
+| Checkpoints | Executor messages lead, lead asks user | Not supported -- agents proceed autonomously |
+| Deviation handling | Executor messages lead for approval | Agent proceeds with best judgment |
+| File conflicts | Detected via messaging, lead arbitrates | Prevented by wave ordering |
+| Stall detection | Lead monitors for 5-min gaps | Not needed -- lead waits for Task() return |
+| Error recovery | Lead reverts task, another executor claims | Lead retries with new Task() once |

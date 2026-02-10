@@ -64,7 +64,19 @@ CODEBASE CONTEXT:
 - Top-level structure: {directory listing}
 ```
 
-### Step 3: Create the Mapping Team
+### Step 2.5: Execution Mode Check
+
+**Reference:** `workflows/execution-mode-check.md`
+
+Read `.planning/config.json` -> `execution_mode`. Follow the execution mode detection logic:
+
+- **If `execution_mode` is `null`:** Present the user with the execution mode choice (team vs classic). Save their choice to `config.json`.
+- **If `execution_mode` is `"team"`:** Continue with the team-based mapping flow (Steps 3-7 below).
+- **If `execution_mode` is `"classic"`:** Skip to **Step 3-Classic** below.
+
+### Step 3: Create the Mapping Team (Team Mode)
+
+**Condition:** `execution_mode == "team"`
 
 **Create the team:**
 
@@ -301,6 +313,85 @@ If a mapper stops responding or reports a blocker:
 2. Spawn a replacement mapper
 3. Note the issue for the synthesis
 
+### Step 3-Classic: Map Codebase with Parallel Task() Agents
+
+**Condition:** `execution_mode == "classic"`
+
+Instead of creating a team, spawn 4 parallel `Task()` subagents (fire-and-forget). Each mapper writes its output files independently. No shared task list, no inter-agent messaging.
+
+```
+// Spawn 4 parallel Task() subagents -- one per focus area
+// Use the same task descriptions from Step 3's TaskCreate calls above
+// Each gets a self-contained prompt with codebase context and focus area
+
+mapper_tech = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD Codebase Mapper. Analyze the technology stack and integrations.
+
+  CODEBASE CONTEXT:
+  {context string from Step 2}
+
+  {Same focus areas and instructions as Task 1 from Step 3}
+
+  Write TWO files:
+  - .planning/codebase/STACK.md
+  - .planning/codebase/INTEGRATIONS.md"
+)
+
+mapper_arch = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD Codebase Mapper. Analyze the architecture and structure.
+
+  CODEBASE CONTEXT:
+  {context string from Step 2}
+
+  {Same focus areas and instructions as Task 2 from Step 3}
+
+  Write TWO files:
+  - .planning/codebase/ARCHITECTURE.md
+  - .planning/codebase/STRUCTURE.md"
+)
+
+mapper_quality = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD Codebase Mapper. Analyze conventions and testing.
+
+  CODEBASE CONTEXT:
+  {context string from Step 2}
+
+  {Same focus areas and instructions as Task 3 from Step 3}
+
+  Write TWO files:
+  - .planning/codebase/CONVENTIONS.md
+  - .planning/codebase/TESTING.md"
+)
+
+mapper_concerns = Task(
+  subagent_type="general-purpose",
+  run_in_background=true,
+  prompt="You are a GMSD Codebase Mapper. Identify concerns and technical debt.
+
+  CODEBASE CONTEXT:
+  {context string from Step 2}
+
+  {Same focus areas and instructions as Task 4 from Step 3}
+
+  Write findings to: .planning/codebase/CONCERNS.md"
+)
+
+// Wait for all 4 to complete
+WAIT for mapper_tech, mapper_arch, mapper_quality, mapper_concerns
+
+// Verify output files exist
+Verify existence of all 7 expected files in .planning/codebase/
+
+// Skip Steps 4-5 (spawn mapper agents, lead monitoring) and Step 7 (team shutdown)
+// Proceed directly to Step 6 (Synthesize Results)
+```
+
 ### Step 6: Synthesize Results
 
 After all mappers complete, read all seven analysis files:
@@ -390,7 +481,9 @@ For full details, see the individual analysis files:
 - [Concerns & Technical Debt](.planning/codebase/CONCERNS.md)
 ```
 
-### Step 7: Shutdown Team
+### Step 7: Shutdown Team (Team Mode Only)
+
+**Skip this step if `execution_mode == "classic"`.** Classic mode does not create a team, so there is nothing to shut down.
 
 1. Send `shutdown_request` to each mapper:
 ```
