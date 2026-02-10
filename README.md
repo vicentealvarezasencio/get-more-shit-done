@@ -1,8 +1,8 @@
 # Get More Shit Done (GMSD)
 
-Team-based project orchestration system for [Claude Code](https://claude.ai/claude-code). Built on Claude Code's Agent Teams feature (Opus 4.6).
+Project orchestration system for [Claude Code](https://claude.ai/claude-code). Supports both Agent Teams (Opus 4.6) and classic wave-based execution.
 
-> Research. Design. Plan. Execute. Verify. — With coordinated agent teams.
+> Research. Design. Plan. Execute. Verify. — Solo or with coordinated agent teams.
 
 ## What is GMSD?
 
@@ -46,7 +46,7 @@ npx get-more-shit-done-cc --uninstall
 ### Requirements
 
 - [Claude Code](https://claude.ai/claude-code) CLI
-- Agent Teams enabled:
+- **For team mode** (recommended): Agent Teams enabled:
   ```json
   // ~/.claude/settings.json
   {
@@ -55,7 +55,8 @@ npx get-more-shit-done-cc --uninstall
     }
   }
   ```
-- **Recommended:** [tmux](https://github.com/tmux/tmux) for split-pane visibility
+  Classic mode works without this flag — see [Execution Modes](#execution-modes).
+- **Recommended:** [tmux](https://github.com/tmux/tmux) for split-pane visibility (team mode)
   ```bash
   brew install tmux
   tmux new -s claude
@@ -181,6 +182,36 @@ Research Team (parallel domain exploration with live broadcasts)
     ↓
 /gmsd:milestone (archive + next version)
 ```
+
+## Execution Modes
+
+GMSD supports two execution modes. On first run of any team-creating command (`execute-phase`, `new-project`, `map-codebase`, `debug`, `design-phase`), you'll be prompted to choose. Your choice is saved to `.planning/config.json` and reused for all future commands. You can change it anytime with `/gmsd:settings`.
+
+### Team Mode (recommended)
+
+Coordinated Agent Teams with shared task lists and real-time messaging. Agents claim tasks dynamically, communicate findings, and resolve conflicts as they work.
+
+- Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+- Best for: complex projects, multi-file changes, collaborative debugging
+- Agents visible in tmux split panes
+
+### Classic Mode
+
+The original GSD approach — independent fire-and-forget agents dispatched in pre-computed waves. No inter-agent communication, no shared task list.
+
+- Works on any Claude Code installation, no experimental flags needed
+- Best for: simpler projects, environments where Agent Teams isn't available
+- Same task quality — agents receive identical self-contained briefs
+
+### Comparison
+
+| Feature | Team Mode | Classic Mode |
+|---------|-----------|--------------|
+| Dispatch | Shared task list, dynamic claiming | Pre-computed waves, fire-and-forget |
+| Communication | Real-time messaging between agents | None — agents work independently |
+| Scaling | Dynamic (spawn more agents on demand) | Fixed at wave start |
+| File conflicts | Detected and resolved via messaging | Prevented by wave ordering |
+| Requires | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` | Nothing — works everywhere |
 
 ## UI/UX Design System — Two Paths
 
