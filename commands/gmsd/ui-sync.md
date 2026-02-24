@@ -16,6 +16,7 @@ Detect and resolve drift between UI specifications and realized implementations.
 @.planning/design/COMPONENTS.md (if exists)
 @.planning/design/ui-exports/*.md (if exists)
 @.planning/design/UI-REGISTRY.md (if exists)
+@.planning/REQUIREMENTS.md (if exists)
 </context>
 
 <ux_principles>
@@ -47,8 +48,55 @@ Collect all UI specification files:
 - ui-exports/*.md
 - UI-REGISTRY.md
 - UI-DECISIONS.md
+- CLAUDE.md (project root — check for UI Specs section)
+- REQUIREMENTS.md (check for UI Spec links)
 
 Note missing files for reporting.
+</step>
+
+<step name="check_claude_md_integration">
+## Check CLAUDE.md GSD Integration
+
+**This step ensures the CLAUDE.md instruction exists for GSD agents to read UI specs.**
+
+1. Read the project-level `CLAUDE.md` at the project root
+2. Search for a `## UI Specs` section (or the phrase "UI Spec" in context of design instructions)
+3. If the section is **missing**:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ UI ► CLAUDE.MD INTEGRATION CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✗ CLAUDE.md missing UI Specs integration rule
+  GSD agents will NOT read screen specs during execution.
+  Fix: Add UI Specs section to CLAUDE.md (auto-fixable)
+───────────────────────────────────────────────────────
+```
+
+4. If the section **exists**: report as healthy.
+
+**Auto-fix:** Append the following block to CLAUDE.md (same as what `/gmsd:init` would add):
+
+```markdown
+
+## UI Specs (Auto-added by /gmsd:ui-sync)
+
+Design tokens: .planning/design/design-tokens.json
+Component details: .planning/design/COMPONENTS.md
+
+When a requirement in REQUIREMENTS.md references a "UI Spec" path, read that
+screen spec file before implementing the screen. If the screen spec lists
+components, read their full definition from COMPONENTS.md.
+
+Use exact values from specs and design tokens (colors, spacing, typography).
+If a screen or component has no spec linked, ask before guessing the design.
+```
+
+**Rules:**
+- Do NOT overwrite existing CLAUDE.md content — only append
+- Do NOT add if the section already exists
+- If CLAUDE.md does not exist, create it with only the block above
 </step>
 
 <step name="check_token_references">
@@ -225,6 +273,92 @@ Undocumented patterns detected:
 ```
 </step>
 
+<step name="check_requirement_spec_links">
+## Check Requirement-to-Spec Links
+
+**This step ensures REQUIREMENTS.md stays in sync with screen specs after Pencil iterations and pulls.**
+
+Skip this step if `.planning/REQUIREMENTS.md` does not exist.
+
+### 1. Read current state
+
+- Read all screen specs from `.planning/design/screens/SCR-*.md`
+- For each screen spec, extract from Section 1 (Meta): the `Requirements:` field (e.g., `REQ-03, REQ-04`)
+- For each screen spec, extract from Section 5 (Components): the component list
+- Read `.planning/REQUIREMENTS.md` and find all existing `UI Spec:` and `UI Components:` lines
+
+### 2. Detect drift
+
+Compare what the screen specs say vs what REQUIREMENTS.md says:
+
+**Missing links** — Screen spec maps to REQ-XX but REQUIREMENTS.md has no `UI Spec:` path for that requirement:
+```
+✗ REQ-03 — Missing UI Spec link
+  Screen SCR-01-login.md maps to REQ-03 but REQUIREMENTS.md has no path
+```
+
+**Stale component lists** — Screen spec has components that don't match what's listed in REQUIREMENTS.md:
+```
+⚠ REQ-03 — Component list outdated
+  REQUIREMENTS.md: InputField, Button/Primary
+  Screen spec: InputField, Button/Primary, StatusBadge, Avatar
+  New: StatusBadge, Avatar
+```
+
+**Orphaned links** — REQUIREMENTS.md references a screen spec that no longer exists:
+```
+✗ REQ-07 — References SCR-10-reports.md but file does not exist
+```
+
+**New screens without requirement links** — Screen specs that don't map to any requirement:
+```
+⚠ SCR-12-notifications.md — No requirement mapping
+  Consider: Add to an existing requirement or create new requirement
+```
+
+### 3. Report
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ UI ► REQUIREMENT-SPEC LINK CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Checking requirement-to-spec links...
+
+✓ REQ-01 → SCR-01-login.md — Up to date
+✓ REQ-02 → SCR-02-signup.md — Up to date
+✗ REQ-03 → Missing UI Spec link (should be SCR-04-dashboard.md)
+⚠ REQ-04 → Component list outdated (added: StatusBadge, Avatar)
+✗ REQ-07 → References deleted SCR-10-reports.md
+
+Missing links: 1
+Outdated component lists: 1
+Orphaned links: 1
+───────────────────────────────────────────────────────
+```
+
+### 4. Auto-fix (when user approves)
+
+**Auto-fixable:**
+- Add missing `UI Spec:` paths to requirements (append below requirement description)
+- Update `UI Components:` lists to match current screen spec Section 5
+- Remove orphaned links pointing to deleted screen specs
+
+**Manual fix needed:**
+- New screens with no requirement mapping — user must decide which requirement they belong to
+
+**Format for additions to REQUIREMENTS.md:**
+```markdown
+- **UI Spec:** .planning/design/screens/SCR-XX-name.md
+- **UI Components:** ComponentA, ComponentB, ComponentC
+```
+
+**Rules:**
+- Do NOT modify existing requirement descriptions — only add/update the `UI Spec` and `UI Components` metadata lines
+- If lines already exist, replace them with updated values
+- Preserve all other content in REQUIREMENTS.md unchanged
+</step>
+
 <step name="generate_sync_report">
 ## Generate Sync Report
 
@@ -262,8 +396,17 @@ REGISTRY ACCURACY                              [2 issues]
 ✗ SCR-06 not in registry
 ○ SCR-10 orphaned (no spec)
 
+REQUIREMENT-SPEC LINKS                         [2 issues]
 ───────────────────────────────────────────────────────
-Total Issues: 6 (2 critical, 2 warning, 2 info)
+✗ REQ-03 missing UI Spec link → SCR-04-dashboard.md
+⚠ REQ-04 component list outdated (added: StatusBadge)
+
+CLAUDE.MD INTEGRATION                          [0-1 issue]
+───────────────────────────────────────────────────────
+✓ UI Specs section present (or: ✗ Missing — GSD won't read specs)
+
+───────────────────────────────────────────────────────
+Total Issues: N (critical, warning, info)
 ───────────────────────────────────────────────────────
 ```
 </step>
@@ -284,11 +427,16 @@ Options:
 - Add missing screens to registry
 - Remove orphaned registry entries
 - Update export timestamps
+- Add `## UI Specs` section to CLAUDE.md if missing
+- Add missing `UI Spec:` paths to REQUIREMENTS.md
+- Update outdated `UI Components:` lists in REQUIREMENTS.md
+- Remove orphaned spec links from REQUIREMENTS.md (pointing to deleted specs)
 
 **Manual fixes required:**
 - Complete missing spec sections
 - Define new components
 - Regenerate stale exports
+- New screens with no requirement mapping (user must assign)
 </step>
 
 <step name="apply_fixes">
@@ -363,7 +511,10 @@ Address remaining issues in order:
 <success_criteria>
 - All UI files scanned for consistency
 - Drift detected and categorized
-- Auto-fixable issues resolved
+- **CLAUDE.md checked for UI Specs integration rule** (added if missing)
+- **Requirement-to-spec links verified and updated** (if REQUIREMENTS.md exists)
+- **Component lists in REQUIREMENTS.md reconciled with current screen specs** (if REQUIREMENTS.md exists)
+- Auto-fixable issues resolved (including CLAUDE.md and requirement link fixes)
 - Manual fixes clearly documented
 - Registry aligned with specifications
 - Health score calculated

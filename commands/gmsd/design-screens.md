@@ -442,6 +442,50 @@ While creating specs, identify reusable patterns:
 Document patterns in `.planning/design/UI-PATTERNS.md` or note for `/gmsd:patterns` command.
 </step>
 
+<step name="link_specs_to_requirements">
+## Link Screen Specs to REQUIREMENTS.md
+
+**This step creates the bridge between UI specs and GSD execution.**
+
+After all screen specs are created, if `.planning/REQUIREMENTS.md` exists:
+
+1. Read `REQUIREMENTS.md`
+2. For each requirement that was mapped to a screen (from step "identify_screens"):
+   - Find the requirement entry in REQUIREMENTS.md
+   - Add spec path references directly below the requirement description
+3. Use this format to add under each relevant requirement:
+
+```markdown
+### REQ-XX: [Requirement Name]
+[Existing requirement description stays untouched]
+- **UI Spec:** .planning/design/screens/SCR-XX-name.md
+- **UI Components:** [List components used by this screen from the spec's Section 5]
+```
+
+**Rules:**
+- Do NOT modify existing requirement text — only append the UI Spec and UI Components lines
+- If a requirement already has `UI Spec:` lines, update them (don't duplicate)
+- If a requirement maps to multiple screens, list all:
+  ```markdown
+  - **UI Spec:** .planning/design/screens/SCR-01-login.md, .planning/design/screens/SCR-02-signup.md
+  ```
+- If a screen maps to no requirement (e.g., utility screens), skip it — it will still be accessible via the screen spec directly
+- After updating, report how many requirements were linked
+
+**Example result in REQUIREMENTS.md:**
+```markdown
+### REQ-03: User Authentication
+Users must be able to sign up and log in with email/password or OAuth.
+- **UI Spec:** .planning/design/screens/SCR-01-login.md, .planning/design/screens/SCR-02-signup.md
+- **UI Components:** Card, InputField, Button/Primary, Button/Secondary, SocialButton, Divider
+
+### REQ-04: Dashboard Overview
+Users see a summary of key metrics and recent activity.
+- **UI Spec:** .planning/design/screens/SCR-04-dashboard.md
+- **UI Components:** Card, DataTable, Sidebar, Header, Badge, Chart
+```
+</step>
+
 <step name="update_state">
 ## Update State
 
@@ -486,9 +530,15 @@ Patterns Identified: 3
   • Data List (SCR-05)
   • Detail View (SCR-06)
 
+Requirements Linked: [N] of [M]
+  ✓ REQ-01 → SCR-01-login.md, SCR-02-signup.md
+  ✓ REQ-04 → SCR-04-dashboard.md
+  ○ SCR-07 — No requirement mapped (utility screen)
+
 Files:
   .planning/design/UI-SPEC.md
   .planning/design/screens/*.md
+  .planning/REQUIREMENTS.md (updated with spec paths)
 
 ───────────────────────────────────────────────────────
 
@@ -500,8 +550,8 @@ Files:
 
 **Or export directly** — Generate design tool prompts
 
-`/gmsd:export stitch`    Visual designs
-`/gmsd:export v0`        React components
+`/ui:export stitch`    Visual designs
+`/ui:export v0`        React components
 
 ───────────────────────────────────────────────────────
 ```
@@ -515,6 +565,7 @@ Files:
 - Each screen has all 10 sections (wireframe, components, states, etc.)
 - Navigation flows document how screens connect
 - Requirements mapped to screens (if REQUIREMENTS.md exists)
+- **REQUIREMENTS.md updated with UI Spec paths and component lists for each linked requirement** (if REQUIREMENTS.md exists)
 - Patterns identified and documented
 - State file updated
 </success_criteria>

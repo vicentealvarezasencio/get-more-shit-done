@@ -231,6 +231,36 @@ Create `.planning/design/ui-state/` directory and initialize:
 ```
 </step>
 
+<step name="add_claude_md_instruction">
+## Add GSD Integration Instruction to CLAUDE.md
+
+**This step ensures GSD agents always read UI specs when implementing screens.**
+
+1. Check if a project-level `CLAUDE.md` exists at the project root.
+2. If it exists, read it and check if a `## UI Specs` section already exists.
+3. If the section does NOT exist, append the following block to the end of `CLAUDE.md`:
+
+```markdown
+
+## UI Specs (Auto-added by /ui:init)
+
+Design tokens: .planning/design/design-tokens.json
+Component details: .planning/design/COMPONENTS.md
+
+When a requirement in REQUIREMENTS.md references a "UI Spec" path, read that
+screen spec file before implementing the screen. If the screen spec lists
+components, read their full definition from COMPONENTS.md.
+
+Use exact values from specs and design tokens (colors, spacing, typography).
+If a screen or component has no spec linked, ask before guessing the design.
+```
+
+4. If `CLAUDE.md` does not exist, create it with only the block above.
+5. Report what was done in the completion summary.
+
+**Important:** Do NOT overwrite existing CLAUDE.md content. Only append. Do NOT add the section if it already exists.
+</step>
+
 <step name="completion">
 ## Completion Summary
 
@@ -245,10 +275,11 @@ Constraints:  [summary]
 Users:        [audience]
 Inspiration:  [summary or "None specified"]
 
-Files Created:
+Files Created/Updated:
   ✓ .planning/design/UI-CONTEXT.md
   ✓ .planning/design/ui-state/coordinator-state.json
   [✓ .planning/UI-INSPIRATION.md (if applicable)]
+  ✓ CLAUDE.md — Added UI Specs integration rule for GSD
 
 ───────────────────────────────────────────────────────
 
@@ -256,11 +287,11 @@ Files Created:
 
 **Set up design tokens** — Define colors, typography, spacing
 
-`/gmsd:setup-tokens`
+`/ui:setup-tokens`
 
 Or if you have requirements:
 
-`/gmsd:design-screens` — Jump straight to screen specs
+`/ui:design-screens` — Jump straight to screen specs
 
 ───────────────────────────────────────────────────────
 ```
@@ -273,5 +304,6 @@ Or if you have requirements:
 - State files initialized in `.planning/design/ui-state/`
 - User preferences documented
 - Inspiration analyzed (if provided)
+- `CLAUDE.md` updated with UI Specs integration rule (GSD agents will read specs)
 - Clear next step recommended
 </success_criteria>
