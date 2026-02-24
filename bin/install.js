@@ -115,34 +115,12 @@ ${colors.bright}Requirements:${colors.reset}
 }
 
 // Determine install location
-async function getInstallDir() {
+function getInstallDir() {
   if (isLocal) {
     return join(process.cwd(), '.claude');
   }
-  if (isGlobal) {
-    return join(homedir(), '.claude');
-  }
-
-  // Interactive mode - ask user
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise((resolve) => {
-    console.log('\nWhere would you like to install GMSD?\n');
-    console.log('  1. Global (~/.claude/) - Available for all projects');
-    console.log('  2. Local (./.claude/)  - Only for current project\n');
-
-    rl.question('Select [1/2] (default: 1): ', (answer) => {
-      rl.close();
-      if (answer === '2') {
-        resolve(join(process.cwd(), '.claude'));
-      } else {
-        resolve(join(homedir(), '.claude'));
-      }
-    });
-  });
+  // Default to global install (~/.claude/)
+  return join(homedir(), '.claude');
 }
 
 function countFiles(dir) {
@@ -383,7 +361,7 @@ function backupLocalPatches(configDir, modifiedFiles) {
 async function install() {
   showBanner();
 
-  const configDir = await getInstallDir();
+  const configDir = getInstallDir();
   const isLocalInstall = configDir.includes(process.cwd());
   const pathPrefix = isLocalInstall ? './.claude' : '~/.claude';
   const installType = isLocalInstall ? 'local (./.claude/)' : 'global (~/.claude/)';
@@ -720,7 +698,7 @@ async function install() {
 async function uninstall() {
   showBanner();
 
-  const configDir = await getInstallDir();
+  const configDir = getInstallDir();
   const isLocalInstall = configDir.includes(process.cwd());
   const installType = isLocalInstall ? 'local (./.claude/)' : 'global (~/.claude/)';
 
